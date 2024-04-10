@@ -22,7 +22,7 @@ cbor-smol = { git = "https://github.com/Nitrokey/cbor-smol.git", tag = "v0.4.0-n
 fido-authenticator = { git = "https://github.com/Nitrokey/fido-authenticator.git", tag = "v0.1.1-nitrokey.14" }
 lpc55-hal = { git = "https://github.com/Nitrokey/lpc55-hal", tag = "v0.3.0-nitrokey.2" }
 serde-indexed = { git = "https://github.com/nitrokey/serde-indexed.git", tag = "v0.1.0-nitrokey.2" }
-trussed = { git = "https://github.com/Nitrokey/trussed.git", rev = "371e8f7a07817c2ed57978bd86e3412bd9877647" }
+trussed = { git = "https://github.com/Nitrokey/trussed.git", branch = "mechanisms-nk" }
 
 # unreleased upstream changes
 apdu-dispatch = { git = "https://github.com/Nitrokey/apdu-dispatch.git", tag = "v0.1.2-nitrokey.3" }
@@ -48,7 +48,8 @@ trussed-hkdf = { git = "https://github.com/trussed-dev/trussed-staging.git", tag
 trussed-rsa-alloc = { git = "https://github.com/trussed-dev/trussed-rsa-backend.git", rev = "9732a9a3e98af72112286afdc9b7174c66c2869a" }
 trussed-usbip = { git = "https://github.com/Nitrokey/pc-usbip-runner.git", tag = "v0.0.1-nitrokey.3" }
 trussed-se050-manage = { git = "https://github.com/Nitrokey/trussed-se050-backend.git", tag = "se050-manage-v0.1.0" }
-trussed-se050-backend = { git = "https://github.com/Nitrokey/trussed-se050-backend.git", tag = "v0.3.1" }
+# trussed-se050-backend = { git = "https://github.com/Nitrokey/trussed-se050-backend.git", tag = "v0.3.1" }
+trussed-se050-backend = { git = "https://github.com/Nitrokey/trussed-se050-backend.git", branch = "mechanisms" }
 
 [profile.release]
 codegen-units = 1
