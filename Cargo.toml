@@ -19,7 +19,8 @@ memory-regions = { path = "components/memory-regions" }
 # forked
 admin-app = { git = "https://github.com/Nitrokey/admin-app.git", rev = "c257432dbe2efb53424d6847d82d90ddb527c53b" }
 cbor-smol = { git = "https://github.com/Nitrokey/cbor-smol.git", tag = "v0.4.0-nitrokey.3"}
-fido-authenticator = { git = "https://github.com/Nitrokey/fido-authenticator.git", tag = "v0.1.1-nitrokey.14" }
+# fido-authenticator = { git = "https://github.com/Nitrokey/fido-authenticator.git", tag = "v0.1.1-nitrokey.14" }
+fido-authenticator = { git = "https://github.com/Nitrokey/fido-authenticator.git", branch = "alg" }
 lpc55-hal = { git = "https://github.com/Nitrokey/lpc55-hal", tag = "v0.3.0-nitrokey.2" }
 serde-indexed = { git = "https://github.com/nitrokey/serde-indexed.git", tag = "v0.1.0-nitrokey.2" }
 trussed = { git = "https://github.com/Nitrokey/trussed.git", tag = "v0.1.0-nitrokey.19" }
