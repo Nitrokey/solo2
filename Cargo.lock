@@ -1178,7 +1178,7 @@ dependencies = [
 [[package]]
 name = "fido-authenticator"
 version = "0.1.1"
-source = "git+https://github.com/Nitrokey/fido-authenticator.git?tag=v0.1.1-nitrokey.14#db4a63dd582784c847520136da930f172330ef28"
+source = "git+https://github.com/Nitrokey/fido-authenticator.git?branch=alg#2ea31e8778d042be85a309d8527a5da22dff5057"
 dependencies = [
  "apdu-dispatch",
  "ctap-types",
@@ -1188,7 +1188,6 @@ dependencies = [
  "iso7816",
  "serde",
  "serde-indexed",
- "serde_cbor",
  "sha2",
  "trussed",
  "trussed-chunked",
