@@ -20,7 +20,7 @@ use lpc55_hal::{
 use memory_regions::MemoryRegions;
 use utils::OptionalStorage;
 
-use crate::{flash::ExtFlashStorage, soc::lpc55::Lpc55, store::impl_storage_pointers, Board};
+use crate::{flash::ExtFlashStorage, soc::lpc55::Lpc55, Board};
 
 pub mod button;
 pub mod led;
@@ -59,6 +59,9 @@ pub struct NK3xN;
 impl Board for NK3xN {
     type Soc = Lpc55;
 
+    type InternalStorage = InternalFlashStorage;
+    type ExternalStorage = ExternalFlashStorage;
+
     type NfcDevice = NfcChip;
     type Buttons = button::ThreeButtons;
     type Led = led::RgbLed;
@@ -78,12 +81,6 @@ impl Board for NK3xN {
 
 pub type InternalFlashStorage = InternalFilesystem;
 pub type ExternalFlashStorage = OptionalStorage<ExtFlashStorage<Spi, FlashCs>>;
-
-impl_storage_pointers!(
-    NK3xN,
-    Internal = InternalFlashStorage,
-    External = ExternalFlashStorage,
-);
 
 #[cfg(feature = "se050")]
 pub struct TimerDelay<T>(pub T);

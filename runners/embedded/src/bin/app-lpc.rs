@@ -22,6 +22,7 @@ mod app {
         nk3xn::{nfc::NfcChip, NK3xN},
         runtime,
         soc::lpc55::{self, monotonic::SystickMonotonic},
+        store::StoreResources,
         Apps, Trussed,
     };
     use ctaphid_dispatch::dispatch::Dispatch as CtaphidDispatch;
@@ -99,7 +100,11 @@ mod app {
     #[monotonic(binds = SysTick, default = true)]
     type Monotonic = SystickMonotonic;
 
-    #[init()]
+    #[init(
+        local = [
+          store_resources: StoreResources<Board> = StoreResources::new(),
+        ]
+    )]
     fn init(c: init::Context) -> (SharedResources, LocalResources, init::Monotonics) {
         #[cfg(feature = "alloc")]
         embedded_runner_lib::init_alloc();
@@ -110,7 +115,7 @@ mod app {
             trussed,
             apps,
             clock_controller,
-        } = nk3xn::init(c.device, c.core);
+        } = nk3xn::init(c.device, c.core, c.local.store_resources);
         let perf_timer = basic.perf_timer;
         let wait_extender = basic.delay_timer;
 

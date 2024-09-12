@@ -24,9 +24,7 @@ use trussed::{
     client,
     key::{Flags, Key, Kind as KeyKind},
     store::{self, Store},
-    syscall,
-    types::LfsStorage,
-    Client,
+    syscall, Client,
 };
 
 const TESTER_FILENAME_ID: [u8; 2] = [0xe1, 0x01];
@@ -107,10 +105,9 @@ enum SelectedBuffer {
     File,
 }
 
-pub struct Provisioner<S, FS, T>
+pub struct Provisioner<S, T>
 where
     S: Store,
-    FS: 'static + LfsStorage,
     T: Client + client::X255 + client::HmacSha256,
 {
     trussed: T,
@@ -120,35 +117,22 @@ where
     buffer_file_contents: Vec<u8, 8192>,
 
     store: S,
-    stolen_filesystem: &'static mut FS,
-    #[allow(dead_code)]
-    is_passive: bool,
     uuid: Uuid,
     rebooter: fn() -> !,
 }
 
-impl<S, FS, T> Provisioner<S, FS, T>
+impl<S, T> Provisioner<S, T>
 where
     S: Store,
-    FS: 'static + LfsStorage,
     T: Client + client::X255 + client::HmacSha256,
 {
-    pub fn new(
-        trussed: T,
-        store: S,
-        stolen_filesystem: &'static mut FS,
-        is_passive: bool,
-        uuid: Uuid,
-        rebooter: fn() -> !,
-    ) -> Provisioner<S, FS, T> {
+    pub fn new(trussed: T, store: S, uuid: Uuid, rebooter: fn() -> !) -> Self {
         Self {
             trussed,
             selected_buffer: SelectedBuffer::Filename,
             buffer_filename: Vec::new(),
             buffer_file_contents: Vec::new(),
             store,
-            stolen_filesystem,
-            is_passive,
             uuid,
             rebooter,
         }
@@ -171,11 +155,9 @@ where
                 Ok(())
             }
             Instruction::ReformatFilesystem => {
-                // Provide a method to reset the FS.
-                info!("Reformatting the FS..");
-                littlefs2::fs::Filesystem::format(self.stolen_filesystem)
-                    .map_err(|_| Error::NotEnoughMemory)?;
-                Ok(())
+                // Removed as this requires unsafe direct access to the filesystem and is not used
+                // in practice.
+                Err(Error::FunctionNotSupported)
             }
             Instruction::WriteFile => {
                 if self.buffer_file_contents.is_empty() || self.buffer_filename.is_empty() {
@@ -217,7 +199,7 @@ where
                 // This should use the proper `random` method but is not possible without a `CryptoRng` implementation, which trussed is not
                 let keypair = loop {
                     seed.copy_from_slice(syscall!(self.trussed.random_bytes(32)).bytes.as_slice());
-                    match SecretKey::from_bytes(&seed) {
+                    match SecretKey::from_bytes(seed) {
                         Ok(secret) => {
                             break Keypair {
                                 public: secret.public_key(),

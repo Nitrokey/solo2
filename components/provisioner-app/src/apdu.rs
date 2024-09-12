@@ -8,7 +8,7 @@ use apdu_dispatch::{
     Command,
 };
 use core::convert::{TryFrom, TryInto};
-use trussed::{client, store::Store, types::LfsStorage, Client};
+use trussed::{client, store::Store, Client};
 
 const SOLO_PROVISIONER_AID: &[u8] = &[0xA0, 0x00, 0x00, 0x08, 0x47, 0x01, 0x00, 0x00, 0x01];
 
@@ -36,10 +36,9 @@ impl From<Error> for Status {
     }
 }
 
-impl<S, FS, T> iso7816::App for Provisioner<S, FS, T>
+impl<S, T> iso7816::App for Provisioner<S, T>
 where
     S: Store,
-    FS: 'static + LfsStorage,
     T: Client + client::X255 + client::HmacSha256,
 {
     fn aid(&self) -> Aid {
@@ -47,10 +46,9 @@ where
     }
 }
 
-impl<S, FS, T> App<CommandSize, ResponseSize> for Provisioner<S, FS, T>
+impl<S, T> App<CommandSize, ResponseSize> for Provisioner<S, T>
 where
     S: Store,
-    FS: 'static + LfsStorage,
     T: Client + client::X255 + client::HmacSha256,
 {
     fn select(

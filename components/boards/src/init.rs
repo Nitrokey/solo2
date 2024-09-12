@@ -166,15 +166,9 @@ pub fn init_apps<B: Board>(
     let provisioner = {
         use apps::Reboot as _;
         let store = store.clone();
-        let int_flash_ref = unsafe { crate::store::steal_internal_storage::<B>() };
         let rebooter: fn() -> ! = B::Soc::reboot_to_firmware_update;
 
-        apps::ProvisionerData {
-            store,
-            stolen_filesystem: int_flash_ref,
-            nfc_powered,
-            rebooter,
-        }
+        apps::ProvisionerData { store, rebooter }
     };
 
     let runner = Runner {

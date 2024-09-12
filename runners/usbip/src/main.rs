@@ -114,9 +114,6 @@ impl apps::Runner for Runner {
 
     type Store = store::Store;
 
-    #[cfg(feature = "provisioner")]
-    type Filesystem = <store::Store as trussed::store::Store>::I;
-
     type Twi = ();
     type Se050Timer = ();
 
@@ -201,8 +198,6 @@ fn exec(
                 #[cfg(feature = "provisioner")]
                 provisioner: apps::ProvisionerData {
                     store,
-                    stolen_filesystem: unsafe { FilesystemOrRam::ifs() },
-                    nfc_powered: false,
                     rebooter: || unimplemented!(),
                 },
                 _marker: Default::default(),

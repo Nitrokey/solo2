@@ -1,12 +1,13 @@
 pub mod init;
 
-use boards::nk3xn::NK3xN;
+use boards::{nk3xn::NK3xN, store::StoreResources};
 
 use crate::{VERSION, VERSION_STRING};
 
 pub fn init(
     device_peripherals: lpc55_hal::raw::Peripherals,
     core_peripherals: rtic::export::Peripherals,
+    store_resources: &'static mut StoreResources<NK3xN>,
 ) -> init::All {
     const SECURE_FIRMWARE_VERSION: u32 = VERSION.encode();
 
@@ -41,7 +42,7 @@ pub fn init(
             nfc_enabled,
         )
         .next(hal.rng, hal.prince, hal.flash)
-        .next()
+        .next(store_resources)
         .next(hal.rtc)
         .next(hal.usbhs)
 }

@@ -244,8 +244,6 @@ pub trait Runner {
 
     type Reboot: Reboot;
     type Store: trussed::store::Store;
-    #[cfg(feature = "provisioner-app")]
-    type Filesystem: trussed::types::LfsStorage + 'static;
     #[cfg(feature = "se050")]
     type Twi: se05x::t1::I2CForT1 + 'static;
     #[cfg(feature = "se050")]
@@ -287,8 +285,7 @@ type OpcardApp<R> = opcard::Card<Client<R>>;
 #[cfg(feature = "piv-authenticator")]
 type PivApp<R> = piv_authenticator::Authenticator<Client<R>>;
 #[cfg(feature = "provisioner-app")]
-type ProvisionerApp<R> =
-    provisioner_app::Provisioner<<R as Runner>::Store, <R as Runner>::Filesystem, Client<R>>;
+type ProvisionerApp<R> = provisioner_app::Provisioner<<R as Runner>::Store, Client<R>>;
 
 #[repr(u8)]
 pub enum CustomStatus {
@@ -1072,8 +1069,6 @@ impl<R: Runner> App<R> for PivApp<R> {
 #[cfg(feature = "provisioner-app")]
 pub struct ProvisionerData<R: Runner> {
     pub store: R::Store,
-    pub stolen_filesystem: &'static mut R::Filesystem,
-    pub nfc_powered: bool,
     pub rebooter: fn() -> !,
 }
 
@@ -1086,14 +1081,7 @@ impl<R: Runner> App<R> for ProvisionerApp<R> {
 
     fn with_client(runner: &R, trussed: Client<R>, data: Self::Data, _: &()) -> Self {
         let uuid = runner.uuid();
-        Self::new(
-            trussed,
-            data.store,
-            data.stolen_filesystem,
-            data.nfc_powered,
-            uuid,
-            data.rebooter,
-        )
+        Self::new(trussed, data.store, uuid, data.rebooter)
     }
     fn interrupt() -> Option<&'static InterruptFlag> {
         static INTERRUPT: InterruptFlag = InterruptFlag::new();

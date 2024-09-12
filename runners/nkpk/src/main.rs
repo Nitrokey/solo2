@@ -13,7 +13,8 @@ mod app {
         nkpk::{self, ExternalFlashStorage, InternalFlashStorage, NKPK},
         runtime,
         soc::nrf52::{self, rtic_monotonic::RtcDuration},
-        store, Apps, Trussed,
+        store::{self, StoreResources},
+        Apps, Trussed,
     };
     use ctaphid_dispatch::dispatch::Dispatch as CtaphidDispatch;
     use interchange::Channel;
@@ -45,7 +46,11 @@ mod app {
     #[monotonic(binds = RTC0, default = true)]
     type RtcMonotonic = nrf52::rtic_monotonic::RtcMonotonic;
 
-    #[init()]
+    #[init(
+        local = [
+          store_resources: StoreResources<Board> = StoreResources::new(),
+        ]
+    )]
     fn init(mut ctx: init::Context) -> (SharedResources, LocalResources, init::Monotonics) {
         let mut init_status = apps::InitStatus::default();
 
@@ -62,8 +67,13 @@ mod app {
 
         let internal_flash = InternalFlashStorage::new(ctx.device.NVMC);
         let external_flash = ExternalFlashStorage::default();
-        let store =
-            store::init_store::<Board>(internal_flash, external_flash, true, &mut init_status);
+        let store = store::init_store::<Board>(
+            ctx.local.store_resources,
+            internal_flash,
+            external_flash,
+            true,
+            &mut init_status,
+        );
 
         const USB_PRODUCT: &str = "Nitrokey Passkey";
         const USB_PRODUCT_ID: u16 = 0x42F3;

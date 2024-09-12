@@ -19,7 +19,7 @@ use boards::{
         lpc55::{clock_controller::DynamicClockController, Lpc55},
         Soc,
     },
-    store::{self, RunnerStore},
+    store::{self, RunnerStore, StoreResources},
     ui::{
         buttons::{self, Press},
         rgb_led::RgbLed as _,
@@ -565,7 +565,7 @@ impl Stage4 {
     }
 
     #[inline(never)]
-    pub fn next(mut self) -> Stage5 {
+    pub fn next(mut self, store_resources: &'static mut StoreResources<NK3xN>) -> Stage5 {
         info_now!("making fs");
 
         let external = if let Some(spi) = self.spi.take() {
@@ -606,7 +606,13 @@ impl Stage4 {
         );
         // TODO: poll iso14443
         let simulated_efs = external.is_ram();
-        let store = store::init_store(internal, external, simulated_efs, &mut self.status);
+        let store = store::init_store(
+            store_resources,
+            internal,
+            external,
+            simulated_efs,
+            &mut self.status,
+        );
         info!("mount end {} ms", self.basic.perf_timer.elapsed().0 / 1000);
 
         // return to slow freq

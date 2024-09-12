@@ -13,7 +13,8 @@ mod app {
         nk3am::{self, InternalFlashStorage, NK3AM},
         runtime,
         soc::nrf52::{self, rtic_monotonic::RtcDuration},
-        store, Apps, Trussed,
+        store::{self, StoreResources},
+        Apps, Trussed,
     };
     use ctaphid_dispatch::dispatch::Dispatch as CtaphidDispatch;
     use interchange::Channel;
@@ -43,7 +44,11 @@ mod app {
     #[monotonic(binds = RTC0, default = true)]
     type RtcMonotonic = nrf52::rtic_monotonic::RtcMonotonic;
 
-    #[init()]
+    #[init(
+        local = [
+          store_resources: StoreResources<Board> = StoreResources::new(),
+        ]
+    )]
     fn init(mut ctx: init::Context) -> (SharedResources, LocalResources, init::Monotonics) {
         let mut init_status = apps::InitStatus::default();
 
@@ -67,7 +72,13 @@ mod app {
             board_gpio.flashnfc_spi.take().unwrap(),
             board_gpio.flash_cs.take().unwrap(),
         );
-        let store = store::init_store(internal_flash, external_flash, false, &mut init_status);
+        let store = store::init_store(
+            ctx.local.store_resources,
+            internal_flash,
+            external_flash,
+            false,
+            &mut init_status,
+        );
 
         static NFC_CHANNEL: CcidChannel = Channel::new();
         let (_nfc_rq, nfc_rp) = NFC_CHANNEL.split().unwrap();

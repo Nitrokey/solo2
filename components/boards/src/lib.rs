@@ -25,6 +25,7 @@ use apps::Dispatch;
 #[cfg(feature = "se050")]
 use embedded_hal::blocking::delay::DelayUs;
 use littlefs2::{
+    driver::Storage,
     fs::{Allocation, Filesystem},
     io::Result as LfsResult,
 };
@@ -34,7 +35,7 @@ use trussed::{client::Syscall, Platform};
 
 use crate::{
     soc::{Soc, Uuid},
-    store::{RunnerStore, StoragePointers},
+    store::RunnerStore,
     ui::{buttons::UserPresence, rgb_led::RgbLed, UserInterface},
 };
 
@@ -42,8 +43,11 @@ pub type Trussed<B> =
     trussed::Service<RunnerPlatform<B>, Dispatch<<B as Board>::Twi, <B as Board>::Se050Timer>>;
 pub type Apps<B> = apps::Apps<Runner<B>>;
 
-pub trait Board: StoragePointers {
+pub trait Board {
     type Soc: Soc;
+
+    type InternalStorage: Storage + 'static;
+    type ExternalStorage: Storage + 'static;
 
     type NfcDevice: NfcDevice;
     type Buttons: UserPresence;
@@ -85,8 +89,6 @@ impl<B: Board> apps::Runner for Runner<B> {
     type Syscall = RunnerSyscall<B::Soc>;
     type Reboot = B::Soc;
     type Store = RunnerStore<B>;
-    #[cfg(feature = "provisioner")]
-    type Filesystem = B::InternalStorage;
     type Twi = B::Twi;
     type Se050Timer = B::Se050Timer;
 
