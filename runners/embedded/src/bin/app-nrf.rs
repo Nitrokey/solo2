@@ -21,7 +21,7 @@ mod app {
     use nrf52840_hal::{
         gpiote::Gpiote,
         rng::Rng,
-        wdt::{self, handles::Hdl0, Watchdog, WatchdogHandle},
+        wdt::{self, handles::Hdl0, WatchdogHandle},
     };
 
     use embedded_runner_lib::{VERSION, VERSION_STRING};
@@ -43,8 +43,7 @@ mod app {
     struct LocalResources {
         gpiote: Gpiote,
         power: nrf52840_pac::POWER,
-        watchdog_handle: WatchdogHandle<Hdl0>,
-        _watchdog: Watchdog<wdt::Active>,
+        watchdog_parts: Option<wdt::Parts<WatchdogHandle<Hdl0>>>,
     }
 
     #[monotonic(binds = RTC0, default = true)]
@@ -147,14 +146,16 @@ mod app {
             LocalResources {
                 gpiote: board_gpio.gpiote,
                 power: ctx.device.POWER,
-                watchdog_handle: wdt_parts.handles.0,
-                _watchdog: wdt_parts.watchdog,
+                watchdog_parts: wdt_parts.ok().map(|parts| wdt::Parts {
+                    watchdog: parts.watchdog,
+                    handles: parts.handles.0,
+                }),
             },
             init::Monotonics(rtc_mono),
         )
     }
 
-    #[idle(shared = [apps, apdu_dispatch, ctaphid_dispatch, usb_classes], local = [watchdog_handle])]
+    #[idle(shared = [apps, apdu_dispatch, ctaphid_dispatch, usb_classes], local = [watchdog_parts])]
     fn idle(ctx: idle::Context) -> ! {
         let idle::SharedResources {
             mut apps,
@@ -168,7 +169,10 @@ mod app {
         // cortex_m::asm::wfi();
 
         loop {
-            ctx.local.watchdog_handle.pet();
+            ctx.local
+                .watchdog_parts
+                .as_mut()
+                .map(|mut parts| parts.handles.pet());
 
             #[cfg(not(feature = "no-delog"))]
             boards::init::Delogger::flush();

@@ -264,7 +264,7 @@ pub fn power_handler(power: &mut POWER) {
     }
 }
 
-pub fn init_watchdog(wdt: WDT) -> wdt::Parts<(WatchdogHandle<Hdl0>,)> {
+pub fn init_watchdog(wdt: WDT) -> Result<wdt::Parts<(WatchdogHandle<Hdl0>,)>, WDT> {
     const WDT_FREQUENCY: u32 = 32_768;
     // Watchdog triggers after 3 minutes
     const DURATION_SECONS: u32 = 3 * 60;
@@ -274,15 +274,14 @@ pub fn init_watchdog(wdt: WDT) -> wdt::Parts<(WatchdogHandle<Hdl0>,)> {
         Ok(mut watchdog) => {
             watchdog.set_lfosc_ticks(TICKS);
             watchdog.enable_interrupt();
-            let parts = watchdog.activate::<One>();
+            let mut parts = watchdog.activate::<One>();
             parts.handles.0.pet();
-            parts
+            Ok(parts)
         }
         Err(wdt) => {
-            let parts = Watchdog::try_recover::<One>(wdt)
-                .expect("Recover should always work for one handle");
+            let mut parts = Watchdog::try_recover::<One>(wdt)?;
             parts.handles.0.pet();
-            parts
+            Ok(parts)
         }
     }
 }
