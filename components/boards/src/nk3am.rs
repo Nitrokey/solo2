@@ -7,10 +7,14 @@ use nfc_device::traits::nfc::{Device as NfcDevice, Error as NfcError, State as N
 use nrf52840_hal::{
     gpio::{p0, p1, Level, Output, Pin, PushPull},
     gpiote::Gpiote,
+    pac::power::RESETREAS,
+    pac::WDT,
     prelude::OutputPin as _,
     spim,
     timer::Timer,
-    twim, Spim, Twim,
+    twim,
+    wdt::{self, count::One, handles::Hdl0, Watchdog, WatchdogHandle},
+    Spim, Twim,
 };
 use nrf52840_pac::{FICR, GPIOTE, P0, P1, POWER, PWM0, PWM1, PWM2, SPIM3, TIMER1, TWIM1};
 
@@ -258,4 +262,71 @@ pub fn power_handler(power: &mut POWER) {
         power.events_usbremoved.write(|w| unsafe { w.bits(0) });
         trace!("usb-");
     }
+}
+
+pub fn init_watchdog(wdt: WDT) -> wdt::Parts<(WatchdogHandle<Hdl0>,)> {
+    const WDT_FREQUENCY: u32 = 32_768;
+    // Watchdog triggers after 3 minutes
+    const DURATION_SECONS: u32 = 3 * 60;
+    const TICKS: u32 = DURATION_SECONS * WDT_FREQUENCY;
+
+    match Watchdog::try_new(wdt) {
+        Ok(mut watchdog) => {
+            watchdog.set_lfosc_ticks(TICKS);
+            watchdog.enable_interrupt();
+            let parts = watchdog.activate::<One>();
+            parts.handles.0.pet();
+            parts
+        }
+        Err(wdt) => {
+            let parts = Watchdog::try_recover::<One>(wdt)
+                .expect("Recover should always work for one handle");
+            parts.handles.0.pet();
+            parts
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct ResetReason {
+    pub resetpin: bool,
+    /// Reset from watchdog
+    pub dog: bool,
+    /// Soft Reset
+    pub sreq: bool,
+    pub lockup: bool,
+    pub off: bool,
+    pub lpcomp: bool,
+    pub dif: bool,
+    pub nfc: bool,
+    pub vbus: bool,
+}
+
+pub fn reset_reason(reset_reason: &RESETREAS) -> ResetReason {
+    debug_now!("Reset Reason: {:b}", reset_reason.read().bits());
+    let read = reset_reason.read();
+    let res = ResetReason {
+        resetpin: read.resetpin().bits(),
+        dog: read.dog().bits(),
+        sreq: read.sreq().bits(),
+        lockup: read.lockup().bits(),
+        off: read.off().bits(),
+        lpcomp: read.lpcomp().bits(),
+        dif: read.dif().bits(),
+        nfc: read.nfc().bits(),
+        vbus: read.vbus().bits(),
+    };
+    reset_reason.write(|w| {
+        w.resetpin().bit(false);
+        w.dog().bit(false);
+        w.sreq().bit(false);
+        w.lockup().bit(false);
+        w.off().bit(false);
+        w.lpcomp().bit(false);
+        w.dif().bit(false);
+        w.nfc().bit(false);
+        w.vbus().bit(false);
+        w
+    });
+    res
 }
