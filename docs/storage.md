@@ -24,6 +24,14 @@ This section describes how the storage is used in the current stable firmware.
 
 Trussed stores the RNG state on the internal filesystem (see `ServiceResources::rng`).  During provisioning, a Trussed device key and certificate are also generated on the internal filesystem.
 
+### trussed-auth
+
+The trussed-auth extension uses the internal filesystem to store a device salt and application PINs with their metadata.
+
 ### fido-authenticator
 
 fido-authenticator stores its state, a KEK and the resident keys on the internal filesystem.  During provisioning, the FIDO2 attestation key and certificate are stored on the internal filesystem.  The KEK is generated on first use.  If there is not enough free space to generate the KEK, the application cannot be used.
+
+### secrets-app
+
+secrets-app stores the user data on the external filesystem.  It uses trussed-auth for one PIN with a derived key.
