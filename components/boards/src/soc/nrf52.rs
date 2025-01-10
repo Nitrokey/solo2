@@ -65,9 +65,6 @@ pub fn init_bootup(
     uuid[0..4].copy_from_slice(&deviceid0.to_be_bytes());
     uuid[4..8].copy_from_slice(&deviceid1.to_be_bytes());
 
-    info!("RESET Reason: {:x}", power.resetreas.read().bits());
-    power.resetreas.write(|w| w);
-
     info!("FICR DeviceID {}", delog::hex_str!(&uuid),);
     info!(
         "FICR IdtRoot  {:08x} {:08x} {:08x} {:08x}",

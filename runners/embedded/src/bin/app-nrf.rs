@@ -8,16 +8,21 @@ use cortex_m_rt::{exception, ExceptionFrame};
 #[rtic::app(device = nrf52840_hal::pac, peripherals = true, dispatchers = [SWI3_EGU3, SWI4_EGU4, SWI5_EGU5])]
 mod app {
     use apdu_dispatch::{dispatch::ApduDispatch, interchanges::Channel as CcidChannel};
+    use apps::Reboot;
     use boards::{
         init::UsbClasses,
         nk3am::{self, InternalFlashStorage, NK3AM},
         runtime,
-        soc::nrf52::{self, rtic_monotonic::RtcDuration},
+        soc::nrf52::{self, rtic_monotonic::RtcDuration, Nrf52},
         store, Apps, Trussed,
     };
     use ctaphid_dispatch::dispatch::Dispatch as CtaphidDispatch;
     use interchange::Channel;
-    use nrf52840_hal::{gpiote::Gpiote, rng::Rng};
+    use nrf52840_hal::{
+        gpiote::Gpiote,
+        rng::Rng,
+        wdt::{self, handles::Hdl0, WatchdogHandle},
+    };
 
     use embedded_runner_lib::{VERSION, VERSION_STRING};
 
@@ -38,6 +43,7 @@ mod app {
     struct LocalResources {
         gpiote: Gpiote,
         power: nrf52840_pac::POWER,
+        watchdog_parts: Option<wdt::Parts<WatchdogHandle<Hdl0>>>,
     }
 
     #[monotonic(binds = RTC0, default = true)]
@@ -55,7 +61,20 @@ mod app {
 
         boards::init::init_logger::<Board>(VERSION_STRING);
 
+        let reset_reason = nk3am::reset_reason(&ctx.device.POWER.resetreas);
+        debug_now!("Reset Reason: {reset_reason:?}");
+
+        // Go to bootloader after watchdog failure
+        // After a soft reset, go back to normal operation
+        // This is required because for some reason the `RESETREAS` register
+        // is not cleared until a full poweroff
+        if reset_reason.dog && !reset_reason.sreq {
+            Nrf52::reboot_to_firmware_update();
+        }
+
         let soc = nrf52::init_bootup(&ctx.device.FICR, &ctx.device.UICR, &mut ctx.device.POWER);
+
+        let wdt_parts = nk3am::init_watchdog(ctx.device.WDT);
 
         let mut board_gpio = nk3am::init_pins(ctx.device.GPIOTE, ctx.device.P0, ctx.device.P1);
 
@@ -127,12 +146,16 @@ mod app {
             LocalResources {
                 gpiote: board_gpio.gpiote,
                 power: ctx.device.POWER,
+                watchdog_parts: wdt_parts.ok().map(|parts| wdt::Parts {
+                    watchdog: parts.watchdog,
+                    handles: parts.handles.0,
+                }),
             },
             init::Monotonics(rtc_mono),
         )
     }
 
-    #[idle(shared = [apps, apdu_dispatch, ctaphid_dispatch, usb_classes])]
+    #[idle(shared = [apps, apdu_dispatch, ctaphid_dispatch, usb_classes], local = [watchdog_parts])]
     fn idle(ctx: idle::Context) -> ! {
         let idle::SharedResources {
             mut apps,
@@ -146,6 +169,11 @@ mod app {
         // cortex_m::asm::wfi();
 
         loop {
+            ctx.local
+                .watchdog_parts
+                .as_mut()
+                .map(|mut parts| parts.handles.pet());
+
             #[cfg(not(feature = "no-delog"))]
             boards::init::Delogger::flush();
 
@@ -170,7 +198,6 @@ mod app {
                 );
             });
         }
-        // loop {}
     }
 
     #[task(priority = 2, binds = SWI0_EGU0, shared = [trussed])]
@@ -236,6 +263,15 @@ mod app {
             trussed.update_ui();
         });
         ui::spawn_after(RtcDuration::from_ms(125)).ok();
+    }
+
+    #[task(priority = 6, binds = WDT)]
+    fn wdt_handler(_ctx: wdt_handler::Context) {
+        #[no_mangle]
+        fn wdt_handler_inner() {
+            error_now!("Reached interrupt");
+        }
+        wdt_handler_inner();
     }
 }
 
