@@ -9,7 +9,7 @@ apps = { path = "../apps" }
 cortex-m = "0.7"
 cortex-m-rtic = "1.0"
 cortex-m-rt = "0.6.15"
-ctaphid-dispatch = "0.1"
+ctaphid-dispatch = "0.2"
 delog = "0.1"
 embedded-hal = "0.2.3"
 embedded-time = "0.12"
@@ -23,10 +23,10 @@ rand = { version =  "0.8.5", default-features = false }
 rand_chacha = { version = "0.3.1", default-features = false }
 ref-swap = "0.1.0"
 spi-memory = "0.2.0"
-trussed = "0.1"
+trussed = { version = "0.1", default-features = false }
 usb-device = "0.2"
-usbd-ccid = "0.2"
-usbd-ctaphid = "0.1"
+usbd-ccid = "0.3"
+usbd-ctaphid = "0.2"
 utils = { path = "../utils" }
 
 # soc-lpc55

@@ -5,18 +5,21 @@ version = 3
 [[package]]
 name = "admin-app"
 version = "0.1.0"
-source = "git+https://github.com/Nitrokey/admin-app.git?tag=v0.1.0-nitrokey.18#599d205e47a7430dfed1c37263fa565597b6597f"
+source = "git+https://github.com/Nitrokey/admin-app.git?tag=v0.1.0-nitrokey.19#d5f1c6df405e4edeb6524f908c1c713139173e81"
 dependencies = [
  "apdu-app",
  "cbor-smol",
- "ctaphid-dispatch",
+ "ctaphid-app",
  "delog",
+ "heapless",
+ "heapless-bytes",
  "hex-literal 0.4.1",
  "iso7816",
  "littlefs2-core",
  "serde",
  "strum_macros",
  "trussed",
+ "trussed-core",
  "trussed-manage",
  "trussed-se050-manage",
 ]
@@ -190,6 +193,7 @@ dependencies = [
  "trussed",
  "trussed-auth",
  "trussed-chunked",
+ "trussed-core",
  "trussed-fs-info",
  "trussed-hkdf",
  "trussed-hpke",
@@ -402,7 +406,7 @@ dependencies = [
  "systick-monotonic",
  "trussed",
  "usb-device",
- "usbd-ccid 0.2.0",
+ "usbd-ccid",
  "usbd-ctaphid",
  "utils",
 ]
@@ -895,16 +899,27 @@ dependencies = [
 ]
 
 [[package]]
-name = "ctaphid-dispatch"
-version = "0.1.1"
-source = "git+https://github.com/Nitrokey/ctaphid-dispatch.git?tag=v0.1.1-nitrokey.3#7f08ac0229ca49a5e2cd69e001658e1b43bc0a2b"
+name = "ctaphid-app"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1fe93489fe96c998488d0843dffea35c02ed9add2585e55228e1d45988727ecc"
 dependencies = [
+ "heapless-bytes",
+ "trussed-core",
+]
+
+[[package]]
+name = "ctaphid-dispatch"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "27caf0a07de6b0af58ba69562c1834ddf7aa27bc1d1687fed3b18fea1501e59e"
+dependencies = [
+ "ctaphid-app",
  "delog",
- "heapless",
  "heapless-bytes",
  "interchange",
  "ref-swap",
- "trussed",
+ "trussed-core",
 ]
 
 [[package]]
@@ -1128,14 +1143,14 @@ checksum = "a357d28ed41a50f9c765dbfe56cbc04a64e53e5fc58ba79fbc34c10ef3df831f"
 [[package]]
 name = "encrypted_container"
 version = "0.1.0"
-source = "git+https://github.com/Nitrokey/trussed-secrets-app?rev=fae41aabe63fa674042b3d217d734955f1f2aac2#fae41aabe63fa674042b3d217d734955f1f2aac2"
+source = "git+https://github.com/Nitrokey/trussed-secrets-app?rev=01728a5a5cdd825835a1bea00807b8a8e080e2b8#01728a5a5cdd825835a1bea00807b8a8e080e2b8"
 dependencies = [
  "cbor-smol",
  "delog",
  "heapless",
  "heapless-bytes",
  "serde",
- "trussed",
+ "trussed-core",
 ]
 
 [[package]]
@@ -1180,23 +1195,24 @@ dependencies = [
 [[package]]
 name = "fido-authenticator"
 version = "0.1.1"
-source = "git+https://github.com/Nitrokey/fido-authenticator.git?tag=v0.1.1-nitrokey.24#63a14793877f49e0bd6a99d28834a0013fdb9d64"
+source = "git+https://github.com/Nitrokey/fido-authenticator.git?tag=v0.1.1-nitrokey.25#c9512c7bdff055a5fd9373f1c60c2a14d05ef3ce"
 dependencies = [
  "apdu-app",
  "cbor-smol",
  "cosey",
  "ctap-types",
- "ctaphid-dispatch",
+ "ctaphid-app",
  "delog",
  "heapless",
+ "heapless-bytes",
  "iso7816",
  "littlefs2-core",
  "serde",
  "serde-indexed",
  "serde_bytes",
  "sha2",
- "trussed",
  "trussed-chunked",
+ "trussed-core",
  "trussed-fs-info",
  "trussed-hkdf",
 ]
@@ -1717,6 +1733,7 @@ dependencies = [
  "serde",
  "serial_test",
  "trussed",
+ "trussed-core",
 ]
 
 [[package]]
@@ -2111,11 +2128,12 @@ checksum = "c08d65885ee38876c4f86fa503fb49d7b507c2b62552df7c70b2fce627e06381"
 [[package]]
 name = "opcard"
 version = "1.5.0"
-source = "git+https://github.com/Nitrokey/opcard-rs?rev=266176ece535e870f6c6c8f0a303ab329d5d26f3#266176ece535e870f6c6c8f0a303ab329d5d26f3"
+source = "git+https://github.com/Nitrokey/opcard-rs?rev=84fd887ac32b59f3451d1fbee21b04a56b07780b#84fd887ac32b59f3451d1fbee21b04a56b07780b"
 dependencies = [
  "admin-app",
  "apdu-app",
  "bitflags 2.6.0",
+ "cbor-smol",
  "cfg-if",
  "delog",
  "heapless",
@@ -2127,9 +2145,9 @@ dependencies = [
  "serde",
  "serde_repr",
  "subtle",
- "trussed",
  "trussed-auth",
  "trussed-chunked",
+ "trussed-core",
  "trussed-rsa-alloc",
  "trussed-wrap-key-to-file",
 ]
@@ -2221,9 +2239,10 @@ checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 [[package]]
 name = "piv-authenticator"
 version = "0.3.8"
-source = "git+https://github.com/Nitrokey/piv-authenticator.git?rev=84ebc022ebacbd1b1964f38f6173010a2fd514f8#84ebc022ebacbd1b1964f38f6173010a2fd514f8"
+source = "git+https://github.com/Nitrokey/piv-authenticator.git?rev=95408fceeb8035fa055516d9848519a6e54305c5#95408fceeb8035fa055516d9848519a6e54305c5"
 dependencies = [
  "apdu-app",
+ "cbor-smol",
  "cfg-if",
  "delog",
  "flexiber",
@@ -2235,9 +2254,9 @@ dependencies = [
  "log",
  "serde",
  "subtle",
- "trussed",
  "trussed-auth",
  "trussed-chunked",
+ "trussed-core",
  "trussed-hpke",
  "trussed-rsa-alloc",
  "trussed-wrap-key-to-file",
@@ -2367,7 +2386,7 @@ name = "provisioner-app"
 version = "0.1.0"
 dependencies = [
  "apdu-app",
- "ctaphid-dispatch",
+ "ctaphid-app",
  "delog",
  "heapless",
  "heapless-bytes",
@@ -2657,13 +2676,13 @@ dependencies = [
 [[package]]
 name = "secrets-app"
 version = "0.13.0"
-source = "git+https://github.com/Nitrokey/trussed-secrets-app?rev=fae41aabe63fa674042b3d217d734955f1f2aac2#fae41aabe63fa674042b3d217d734955f1f2aac2"
+source = "git+https://github.com/Nitrokey/trussed-secrets-app?rev=01728a5a5cdd825835a1bea00807b8a8e080e2b8#01728a5a5cdd825835a1bea00807b8a8e080e2b8"
 dependencies = [
  "apdu-app",
  "bitflags 2.6.0",
  "block-padding",
  "cbor-smol",
- "ctaphid-dispatch",
+ "ctaphid-app",
  "delog",
  "encrypted_container",
  "flexiber",
@@ -2673,8 +2692,8 @@ dependencies = [
  "iso7816",
  "littlefs2-core",
  "serde",
- "trussed",
  "trussed-auth",
+ "trussed-core",
 ]
 
 [[package]]
@@ -3177,7 +3196,7 @@ dependencies = [
 [[package]]
 name = "trussed"
 version = "0.1.0"
-source = "git+https://github.com/nitrokey/trussed.git?tag=v0.1.0-nitrokey.24#43ed1efcb19dc9c8bee45d4a1d3ad7dee2bba5ae"
+source = "git+https://github.com/trussed-dev/trussed.git?rev=6bba8fde36d05c0227769eb63345744e87d84b2b#6bba8fde36d05c0227769eb63345744e87d84b2b"
 dependencies = [
  "aes",
  "bitflags 2.6.0",
@@ -3215,7 +3234,7 @@ dependencies = [
 [[package]]
 name = "trussed-auth"
 version = "0.3.0"
-source = "git+https://github.com/trussed-dev/trussed-auth?rev=c030b82ad3441f337af09afe3a69e8a6da5785ea#c030b82ad3441f337af09afe3a69e8a6da5785ea"
+source = "git+https://github.com/trussed-dev/trussed-auth?rev=fc53539536d7658c45a492585041742d8cdc45d0#fc53539536d7658c45a492585041742d8cdc45d0"
 dependencies = [
  "chacha20poly1305",
  "hkdf",
@@ -3227,24 +3246,26 @@ dependencies = [
  "sha2",
  "subtle",
  "trussed",
+ "trussed-core",
 ]
 
 [[package]]
 name = "trussed-chunked"
-version = "0.1.0"
-source = "git+https://github.com/trussed-dev/trussed-staging.git?tag=chunked-v0.1.0#5fc00717e6aa3f43d4f72fd3bd589f2de3a89b98"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9268d9d812440965ce31684e0115ceafa2636b7a8cc04dc117594567c53ff75e"
 dependencies = [
  "serde",
  "serde-byte-array",
- "trussed",
+ "trussed-core",
 ]
 
 [[package]]
 name = "trussed-core"
 version = "0.1.0"
-source = "git+https://github.com/nitrokey/trussed.git?tag=v0.1.0-nitrokey.24#43ed1efcb19dc9c8bee45d4a1d3ad7dee2bba5ae"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "afddad280ae8a5235e1b06408cca909ce9454cdd89f941b94b024c580732b3ce"
 dependencies = [
- "heapless",
  "heapless-bytes",
  "littlefs2-core",
  "postcard 0.7.3",
@@ -3255,46 +3276,51 @@ dependencies = [
 
 [[package]]
 name = "trussed-fs-info"
-version = "0.1.0"
-source = "git+https://github.com/trussed-dev/trussed-staging.git?tag=fs-info-v0.1.0#72b082002e0869facfc11bf8d76a1272c7ddf4ee"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "44822e0abc5a32b3f370f82644ee9cb08aa693847aac0d48f6dc115389157aea"
 dependencies = [
  "serde",
  "serde-byte-array",
- "trussed",
+ "trussed-core",
 ]
 
 [[package]]
 name = "trussed-hkdf"
-version = "0.2.0"
-source = "git+https://github.com/trussed-dev/trussed-staging.git?tag=hkdf-v0.2.0#e016b25fbc49f3ba13272d58a9e9d47a16d8ea14"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "17884daee9214e24c7bb9cf2429d0f53c569cfa4a8d728106e459e60aed5be69"
 dependencies = [
  "serde",
- "trussed",
+ "trussed-core",
 ]
 
 [[package]]
 name = "trussed-hpke"
-version = "0.1.0"
-source = "git+https://github.com/trussed-dev/trussed-staging.git?tag=hpke-v0.1.0#7c99973187eb9ae2c1e410b5996169ccf2690efa"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6d382b3bb98a71862e7db71437204d3e9f1542e42d30c1f18515ba07db4d970a"
 dependencies = [
  "serde",
  "serde-byte-array",
- "trussed",
+ "trussed-core",
 ]
 
 [[package]]
 name = "trussed-manage"
-version = "0.1.0"
-source = "git+https://github.com/trussed-dev/trussed-staging.git?tag=manage-v0.1.0#5fc00717e6aa3f43d4f72fd3bd589f2de3a89b98"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "47b8d85d7ca4bd11e0508d9874e17f5058faaf5030cfc9efdd6a35ab779b87ca"
 dependencies = [
+ "littlefs2-core",
  "serde",
- "trussed",
+ "trussed-core",
 ]
 
 [[package]]
 name = "trussed-rsa-alloc"
 version = "0.2.1"
-source = "git+https://github.com/trussed-dev/trussed-rsa-backend.git?tag=v0.2.1#655eca355df59e85a9f1d803623bc2efa10a8b5a"
+source = "git+https://github.com/trussed-dev/trussed-rsa-backend.git?rev=743d9aaa3d8a17d7dbf492bd54dc18ab8fca3dc0#743d9aaa3d8a17d7dbf492bd54dc18ab8fca3dc0"
 dependencies = [
  "delog",
  "heapless-bytes",
@@ -3303,14 +3329,14 @@ dependencies = [
  "rsa",
  "serde",
  "trussed",
+ "trussed-core",
 ]
 
 [[package]]
 name = "trussed-se050-backend"
 version = "0.3.6"
-source = "git+https://github.com/Nitrokey/trussed-se050-backend.git?rev=9e1570a957b24995e5234d43f24b8f126c5de2e4#9e1570a957b24995e5234d43f24b8f126c5de2e4"
+source = "git+https://github.com/Nitrokey/trussed-se050-backend.git?rev=58b442331e997b0c50525276258d66d069478f15#58b442331e997b0c50525276258d66d069478f15"
 dependencies = [
- "admin-app",
  "bitflags 2.6.0",
  "cbor-smol",
  "chacha20poly1305",
@@ -3335,6 +3361,7 @@ dependencies = [
  "sha2",
  "trussed",
  "trussed-auth",
+ "trussed-core",
  "trussed-hpke",
  "trussed-manage",
  "trussed-rsa-alloc",
@@ -3344,17 +3371,18 @@ dependencies = [
 
 [[package]]
 name = "trussed-se050-manage"
-version = "0.1.0"
-source = "git+https://github.com/Nitrokey/trussed-se050-backend.git?tag=se050-manage-v0.1.0#d70748efbde217bb6f2a7b1ecd579d2480f7edc0"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "54b1fd8a2ef2691183281ddf81630ef24c27211955c3c3998f83d21572f48673"
 dependencies = [
  "serde",
- "trussed",
+ "trussed-core",
 ]
 
 [[package]]
 name = "trussed-staging"
 version = "0.3.2"
-source = "git+https://github.com/trussed-dev/trussed-staging.git?rev=53eba84d2cd0bcacc3a7096d4b7a2490dcf6f069#53eba84d2cd0bcacc3a7096d4b7a2490dcf6f069"
+source = "git+https://github.com/trussed-dev/trussed-staging.git?rev=1e1ca03a3a62ea9b802f4070ea4bce002eeb4bec#1e1ca03a3a62ea9b802f4070ea4bce002eeb4bec"
 dependencies = [
  "aead",
  "chacha20poly1305",
@@ -3380,7 +3408,7 @@ dependencies = [
 [[package]]
 name = "trussed-usbip"
 version = "0.0.1"
-source = "git+https://github.com/Nitrokey/pc-usbip-runner.git?tag=v0.0.1-nitrokey.5#8d36e78e932b52ae62639bd3fb10ec5c0bae4aed"
+source = "git+https://github.com/trussed-dev/pc-usbip-runner.git?rev=4fe4e4e287dac1d92fcd4f97e8926497bfa9d7a9#4fe4e4e287dac1d92fcd4f97e8926497bfa9d7a9"
 dependencies = [
  "apdu-dispatch",
  "ctaphid-dispatch",
@@ -3388,18 +3416,19 @@ dependencies = [
  "log",
  "trussed",
  "usb-device",
- "usbd-ccid 0.3.0",
+ "usbd-ccid",
  "usbd-ctaphid",
  "usbip-device",
 ]
 
 [[package]]
 name = "trussed-wrap-key-to-file"
-version = "0.1.0"
-source = "git+https://github.com/trussed-dev/trussed-staging.git?tag=wrap-key-to-file-v0.1.0#5fc00717e6aa3f43d4f72fd3bd589f2de3a89b98"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b923d89f632ac2b62af4193844f1afb6d0fe4e31af8a1a85053a328da1f512d7"
 dependencies = [
  "serde",
- "trussed",
+ "trussed-core",
 ]
 
 [[package]]
@@ -3511,19 +3540,6 @@ checksum = "1f6cc3adc849b5292b4075fc0d5fdcf2f24866e88e336dd27a8943090a520508"
 
 [[package]]
 name = "usbd-ccid"
-version = "0.2.0"
-source = "git+https://github.com/Nitrokey/usbd-ccid?tag=v0.2.0-nitrokey.1#eeea54f85cfa69a43c676b63c030608830ea35ea"
-dependencies = [
- "delog",
- "embedded-time",
- "heapless",
- "interchange",
- "iso7816",
- "usb-device",
-]
-
-[[package]]
-name = "usbd-ccid"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "403fefa622483869d1b36f2accd7458291202c18aa2f2e5147caf638825dde0c"
@@ -3538,18 +3554,18 @@ dependencies = [
 
 [[package]]
 name = "usbd-ctaphid"
-version = "0.1.0"
-source = "git+https://github.com/trussed-dev/usbd-ctaphid.git?rev=dcff9009c3cd1ef9e5b09f8f307aca998fc9a8c8#dcff9009c3cd1ef9e5b09f8f307aca998fc9a8c8"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "092fad7bf817001ecade9272fe6ccbea4e5d0c02f99ca24c4c5ce97fbbff5371"
 dependencies = [
  "ctaphid-dispatch",
  "delog",
  "embedded-time",
- "heapless",
  "heapless-bytes",
  "interchange",
  "ref-swap",
  "serde",
- "trussed",
+ "trussed-core",
  "usb-device",
 ]
 
@@ -3698,11 +3714,12 @@ checksum = "af190c94f2773fdb3729c55b007a722abb5384da03bc0986df4c289bf5567e96"
 [[package]]
 name = "webcrypt"
 version = "0.8.0"
-source = "git+https://github.com/nitrokey/nitrokey-websmartcard-rust?tag=v0.8.0-rc10#c14c496210d625b815cf613bda161410a93bf18d"
+source = "git+https://github.com/nitrokey/nitrokey-websmartcard-rust?tag=v0.8.0-rc11#539ca26b1e045e27b1489d71784524640119db8b"
 dependencies = [
  "apdu-app",
  "cbor-smol",
  "ctap-types",
+ "ctaphid-app",
  "ctaphid-dispatch",
  "delog",
  "generic-array",
@@ -3716,6 +3733,7 @@ dependencies = [
  "serde_bytes",
  "sha2",
  "trussed",
+ "trussed-core",
  "trussed-rsa-alloc",
 ]
 

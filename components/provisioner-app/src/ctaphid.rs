@@ -1,19 +1,16 @@
 use crate::{Instruction, Provisioner};
 use core::convert::TryFrom;
-use ctaphid_dispatch::{
-    app::App,
-    command::{Command, VendorCommand},
-    types::{Error, Message},
-};
-use trussed::{client, store::Store, types::LfsStorage, Client};
+use ctaphid_app::{App, Command, Error, VendorCommand};
+use heapless_bytes::Bytes;
+use trussed::{client, store::Store, types::LfsStorage};
 
 const COMMAND_PROVISIONER: VendorCommand = VendorCommand::H71;
 
-impl<S, FS, T> App<'static> for Provisioner<S, FS, T>
+impl<S, FS, T, const N: usize> App<'_, N> for Provisioner<S, FS, T>
 where
     S: Store,
     FS: 'static + LfsStorage,
-    T: Client + client::X255 + client::HmacSha256,
+    T: client::CryptoClient,
 {
     fn commands(&self) -> &'static [Command] {
         &[Command::Vendor(COMMAND_PROVISIONER)]
@@ -22,8 +19,8 @@ where
     fn call(
         &mut self,
         command: Command,
-        request: &Message,
-        response: &mut Message,
+        request: &[u8],
+        response: &mut Bytes<N>,
     ) -> Result<(), Error> {
         if command != Command::Vendor(COMMAND_PROVISIONER) {
             return Err(Error::InvalidCommand);

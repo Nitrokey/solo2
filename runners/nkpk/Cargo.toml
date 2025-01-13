@@ -11,7 +11,7 @@ apps = { path = "../../components/apps", features = ["nkpk"] }
 boards = { path = "../../components/boards", features = ["board-nkpk"] }
 cortex-m = { version = "0.7", features = ["critical-section-single-core"]}
 cortex-m-rtic = "1.0"
-ctaphid-dispatch = "0.1"
+ctaphid-dispatch = "0.2"
 delog = "0.1"
 interchange = "0.3"
 nrf52840-hal = "0.15.1"

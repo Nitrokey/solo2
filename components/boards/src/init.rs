@@ -6,7 +6,7 @@ use apdu_dispatch::{
 use apps::AUTH_LOCATION;
 use apps::{AdminData, Data, Dispatch, FidoData, InitStatus};
 
-use ctaphid_dispatch::{dispatch::Dispatch as CtaphidDispatch, types::Channel as CtapChannel};
+use ctaphid_dispatch::{Channel as CtapChannel, Dispatch as CtaphidDispatch};
 #[cfg(not(feature = "no-delog"))]
 use delog::delog;
 use interchange::Channel;

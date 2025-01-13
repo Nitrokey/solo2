@@ -7,15 +7,16 @@ edition = "2021"
 delog = "0.1"
 apdu-dispatch = "0.3"
 bitflags = "2"
-ctaphid-dispatch = "0.1"
+ctaphid-dispatch = "0.2"
 embedded-hal = "0.2.7"
 heapless = "0.7"
 heapless-bytes = "0.3"
 se05x = { version = "0.1.1", optional = true}
 serde = { version = "1.0.180", default-features = false }
-trussed = { version = "0.1", features = ["serde-extensions"] }
+trussed = { version = "0.1", default-features = false, features = ["crypto-client", "filesystem-client", "management-client", "serde-extensions", "ui-client"] }
+trussed-core = "0.1.0-rc.1"
 trussed-usbip = { version = "0.0.1", default-features = false, features = ["ctaphid"], optional = true }
-usbd-ctaphid = { version = "0.1", optional = true }
+usbd-ctaphid = { version = "0.2", optional = true }
 utils = { path = "../utils" }
 if_chain = "1.0.2"
 littlefs2-core = "0.1"
@@ -27,13 +28,13 @@ trussed-se050-backend = { version = "0.3.6", optional = true }
 trussed-staging = { version = "0.3.2", features = ["wrap-key-to-file", "chunked", "hkdf", "manage", "fs-info"] }
 
 # Extensions
-trussed-chunked = "0.1.0"
-trussed-hkdf = "0.2.0"
-trussed-manage = "0.1.0"
-trussed-se050-manage = { version = "0.1.0", optional = true }
-trussed-wrap-key-to-file = "0.1.0"
-trussed-fs-info = "0.1.0"
-trussed-hpke = "0.1.0"
+trussed-chunked = "0.2.0"
+trussed-hkdf = "0.3.0"
+trussed-manage = "0.2.0"
+trussed-se050-manage = { version = "0.2.0", optional = true }
+trussed-wrap-key-to-file = "0.2.0"
+trussed-fs-info = "0.2.0"
+trussed-hpke = "0.2.0"
 
 # apps
 admin-app = "0.1.0"
@@ -66,11 +67,11 @@ nkpk = ["fido-authenticator", "factory-reset", "trussed/clients-2"]
 nkpk-provisioner = ["nkpk", "provisioner-app", "trussed/clients-3"]
 
 # apps
-secrets-app = ["dep:secrets-app", "backend-auth"]
+secrets-app = ["dep:secrets-app", "backend-auth", "trussed/chacha8-poly1305", "trussed/hmac-sha1", "trussed/hmac-sha256", "trussed/sha256"]
 webcrypt = ["dep:webcrypt", "backend-auth", "backend-rsa"]
-fido-authenticator = ["dep:fido-authenticator", "usbd-ctaphid"]
-opcard = ["dep:opcard", "backend-rsa", "backend-auth"]
-piv-authenticator = ["dep:piv-authenticator", "backend-rsa", "backend-auth"]
+fido-authenticator = ["dep:fido-authenticator", "usbd-ctaphid", "trussed/aes256-cbc", "trussed/certificate-client", "trussed/chacha8-poly1305", "trussed/ed255", "trussed/hmac-sha256", "trussed/p256", "trussed/sha256"]
+opcard = ["dep:opcard", "backend-rsa", "backend-auth", "trussed/aes256-cbc", "trussed/chacha8-poly1305", "trussed/ed255", "trussed/p256", "trussed/shared-secret", "trussed/x255"]
+piv-authenticator = ["dep:piv-authenticator", "backend-rsa", "backend-auth", "trussed/aes256-cbc", "trussed/chacha8-poly1305", "trussed/ed255", "trussed/p256", "trussed/shared-secret", "trussed/tdes", "trussed/x255"]
 se050 = ["dep:se05x", "trussed-se050-backend", "trussed-se050-manage", "admin-app/se050"]
 
 # backends

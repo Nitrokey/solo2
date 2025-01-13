@@ -6,8 +6,8 @@ use heapless_bytes::Bytes;
 
 use crate::lfs_backup::{BackupBackend, FSBackupError, PathCursor, Result, MAX_FS_DEPTH};
 
-use trussed::config::USER_ATTRIBUTE_NUMBER;
-use trussed::types::UserAttribute;
+use trussed_core::config::USER_ATTRIBUTE_NUMBER;
+use trussed_core::types::UserAttribute;
 
 use std::{
     fs::{remove_file, File},

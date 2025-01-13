@@ -1,5 +1,5 @@
 use apdu_dispatch::dispatch::{ApduDispatch, Interface};
-use ctaphid_dispatch::dispatch::Dispatch as CtaphidDispatch;
+use ctaphid_dispatch::Dispatch as CtaphidDispatch;
 use embedded_time::duration::Milliseconds;
 use nfc_device::{traits::nfc::Device as NfcDevice, Iso14443};
 

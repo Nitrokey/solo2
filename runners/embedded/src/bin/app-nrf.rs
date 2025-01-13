@@ -15,7 +15,7 @@ mod app {
         soc::nrf52::{self, rtic_monotonic::RtcDuration},
         store, Apps, Trussed,
     };
-    use ctaphid_dispatch::dispatch::Dispatch as CtaphidDispatch;
+    use ctaphid_dispatch::Dispatch as CtaphidDispatch;
     use interchange::Channel;
     use nrf52840_hal::{gpiote::Gpiote, rng::Rng};
 

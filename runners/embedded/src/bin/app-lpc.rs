@@ -24,7 +24,7 @@ mod app {
         soc::lpc55::{self, monotonic::SystickMonotonic},
         Apps, Trussed,
     };
-    use ctaphid_dispatch::dispatch::Dispatch as CtaphidDispatch;
+    use ctaphid_dispatch::Dispatch as CtaphidDispatch;
     use embedded_runner_lib::nk3xn;
     use lpc55_hal::{
         drivers::timer::Elapsed,

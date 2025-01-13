@@ -11,9 +11,10 @@ use serde::{Deserialize, Serialize};
 use heapless::Vec;
 use heapless_bytes::Bytes;
 
-use trussed::config::{MAX_MESSAGE_LENGTH, USER_ATTRIBUTE_NUMBER};
+use trussed::config::USER_ATTRIBUTE_NUMBER;
+use trussed_core::config::MAX_MESSAGE_LENGTH;
 
-use trussed::types::{Message, UserAttribute};
+use trussed_core::types::{Message, UserAttribute};
 
 pub const MAX_FS_DEPTH: usize = 8;
 

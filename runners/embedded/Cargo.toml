@@ -23,10 +23,10 @@ utils = { path = "../../components/utils", features = ["storage"] }
 
 ### protocols and dispatchers
 apdu-dispatch = "0.3"
-ctaphid-dispatch = "0.1"
+ctaphid-dispatch = "0.2"
 
 ### trussed core
-trussed = "0.1"
+trussed = { version = "0.1", default-features = false }
 interchange = "0.3"
 
 ### usb machinery

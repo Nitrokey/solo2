@@ -2,7 +2,7 @@ use crate::{Error, Provisioner};
 use apdu_app::{App, CommandView, Data, Interface, Result, Status};
 use core::convert::{TryFrom, TryInto};
 use iso7816::{Aid, Instruction};
-use trussed::{client, store::Store, types::LfsStorage, Client};
+use trussed::{client, store::Store, types::LfsStorage};
 
 const SOLO_PROVISIONER_AID: &[u8] = &[0xA0, 0x00, 0x00, 0x08, 0x47, 0x01, 0x00, 0x00, 0x01];
 
@@ -34,7 +34,7 @@ impl<S, FS, T> iso7816::App for Provisioner<S, FS, T>
 where
     S: Store,
     FS: 'static + LfsStorage,
-    T: Client + client::X255 + client::HmacSha256,
+    T: client::CryptoClient,
 {
     fn aid(&self) -> Aid {
         Aid::new(SOLO_PROVISIONER_AID)
@@ -45,7 +45,7 @@ impl<S, FS, T, const R: usize> App<R> for Provisioner<S, FS, T>
 where
     S: Store,
     FS: 'static + LfsStorage,
-    T: Client + client::X255 + client::HmacSha256,
+    T: client::CryptoClient,
 {
     fn select(
         &mut self,

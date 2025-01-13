@@ -29,7 +29,6 @@ use trussed::{
     store::{self, Store},
     syscall,
     types::LfsStorage,
-    Client,
 };
 
 const TESTER_FILENAME_ID: [u8; 2] = [0xe1, 0x01];
@@ -114,7 +113,7 @@ pub struct Provisioner<S, FS, T>
 where
     S: Store,
     FS: 'static + LfsStorage,
-    T: Client + client::X255 + client::HmacSha256,
+    T: client::CryptoClient,
 {
     trussed: T,
 
@@ -134,7 +133,7 @@ impl<S, FS, T> Provisioner<S, FS, T>
 where
     S: Store,
     FS: 'static + LfsStorage,
-    T: Client + client::X255 + client::HmacSha256,
+    T: client::CryptoClient,
 {
     pub fn new(
         trussed: T,

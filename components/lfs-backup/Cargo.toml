@@ -15,7 +15,8 @@ heapless = "0.7.16"
 serde = { version = "1.0", default-features = false }
 postcard = "1.0"
 
-trussed = "0.1"
+trussed = { version = "0.1", default-features = false }
+trussed-core = "0.1.0-rc.1"
 
 [dev-dependencies]
 rand = "0.8.5"

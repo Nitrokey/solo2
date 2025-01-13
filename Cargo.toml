@@ -16,34 +16,24 @@ version = "1.8.0"
 # components
 memory-regions = { path = "components/memory-regions" }
 
-# forked
-admin-app = { git = "https://github.com/Nitrokey/admin-app.git", tag = "v0.1.0-nitrokey.18" }
-fido-authenticator = { git = "https://github.com/Nitrokey/fido-authenticator.git", tag = "v0.1.1-nitrokey.24" }
-trussed = { git = "https://github.com/nitrokey/trussed.git", tag = "v0.1.0-nitrokey.24" }
-
-# unreleased upstream changes
-ctaphid-dispatch = { git = "https://github.com/Nitrokey/ctaphid-dispatch.git", tag = "v0.1.1-nitrokey.3" }
-usbd-ctaphid = { git = "https://github.com/trussed-dev/usbd-ctaphid.git", rev = "dcff9009c3cd1ef9e5b09f8f307aca998fc9a8c8" }
-usbd-ccid = { git = "https://github.com/Nitrokey/usbd-ccid", tag = "v0.2.0-nitrokey.1" }
+# unreleased libraries
 p256-cortex-m4  = { git = "https://github.com/ycrypto/p256-cortex-m4.git", rev = "cdb31e12594b4dc1f045b860a885fdc94d96aee2" }
+trussed = { git = "https://github.com/trussed-dev/trussed.git", rev = "6bba8fde36d05c0227769eb63345744e87d84b2b" }
+trussed-usbip = { git = "https://github.com/trussed-dev/pc-usbip-runner.git", rev = "4fe4e4e287dac1d92fcd4f97e8926497bfa9d7a9" }
 
-# unreleased crates
-secrets-app = { git = "https://github.com/Nitrokey/trussed-secrets-app", rev = "fae41aabe63fa674042b3d217d734955f1f2aac2" }
-webcrypt = { git = "https://github.com/nitrokey/nitrokey-websmartcard-rust", tag = "v0.8.0-rc10" }
-opcard = { git = "https://github.com/Nitrokey/opcard-rs", rev = "266176ece535e870f6c6c8f0a303ab329d5d26f3" }
-piv-authenticator = { git = "https://github.com/Nitrokey/piv-authenticator.git", rev = "84ebc022ebacbd1b1964f38f6173010a2fd514f8" }
-trussed-fs-info = { git = "https://github.com/trussed-dev/trussed-staging.git", tag = "fs-info-v0.1.0" }
-trussed-chunked = { git = "https://github.com/trussed-dev/trussed-staging.git", tag = "chunked-v0.1.0" }
-trussed-manage = { git = "https://github.com/trussed-dev/trussed-staging.git", tag = "manage-v0.1.0" }
-trussed-wrap-key-to-file = { git = "https://github.com/trussed-dev/trussed-staging.git", tag = "wrap-key-to-file-v0.1.0" }
-trussed-staging = { git = "https://github.com/trussed-dev/trussed-staging.git", rev = "53eba84d2cd0bcacc3a7096d4b7a2490dcf6f069" }
-trussed-auth = { git = "https://github.com/trussed-dev/trussed-auth", rev = "c030b82ad3441f337af09afe3a69e8a6da5785ea" }
-trussed-hkdf = { git = "https://github.com/trussed-dev/trussed-staging.git", tag = "hkdf-v0.2.0" }
-trussed-hpke = { git = "https://github.com/trussed-dev/trussed-staging.git", tag = "hpke-v0.1.0" }
-trussed-rsa-alloc = { git = "https://github.com/trussed-dev/trussed-rsa-backend.git", tag = "v0.2.1" }
-trussed-usbip = { git = "https://github.com/Nitrokey/pc-usbip-runner.git", tag = "v0.0.1-nitrokey.5" }
-trussed-se050-manage = { git = "https://github.com/Nitrokey/trussed-se050-backend.git", tag = "se050-manage-v0.1.0" }
-trussed-se050-backend = { git = "https://github.com/Nitrokey/trussed-se050-backend.git", rev = "9e1570a957b24995e5234d43f24b8f126c5de2e4" }
+# applications
+admin-app = { git = "https://github.com/Nitrokey/admin-app.git", tag = "v0.1.0-nitrokey.19" }
+fido-authenticator = { git = "https://github.com/Nitrokey/fido-authenticator.git",tag = "v0.1.1-nitrokey.25" }
+opcard = { git = "https://github.com/Nitrokey/opcard-rs", rev = "84fd887ac32b59f3451d1fbee21b04a56b07780b" }
+piv-authenticator = { git = "https://github.com/Nitrokey/piv-authenticator.git", rev = "95408fceeb8035fa055516d9848519a6e54305c5" }
+secrets-app = { git = "https://github.com/Nitrokey/trussed-secrets-app", rev = "01728a5a5cdd825835a1bea00807b8a8e080e2b8" }
+webcrypt = { git = "https://github.com/nitrokey/nitrokey-websmartcard-rust", tag = "v0.8.0-rc11" }
+
+# backends
+trussed-auth = { git = "https://github.com/trussed-dev/trussed-auth", rev = "fc53539536d7658c45a492585041742d8cdc45d0" }
+trussed-rsa-alloc = { git = "https://github.com/trussed-dev/trussed-rsa-backend.git", rev = "743d9aaa3d8a17d7dbf492bd54dc18ab8fca3dc0" }
+trussed-se050-backend = { git = "https://github.com/Nitrokey/trussed-se050-backend.git", rev = "58b442331e997b0c50525276258d66d069478f15" }
+trussed-staging = { git = "https://github.com/trussed-dev/trussed-staging.git", rev = "1e1ca03a3a62ea9b802f4070ea4bce002eeb4bec" }
 
 [profile.release]
 codegen-units = 1
