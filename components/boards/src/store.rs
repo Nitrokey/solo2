@@ -6,8 +6,9 @@ use littlefs2::{
     driver::Storage,
     fs::{Allocation, Filesystem},
     io::Result,
+    object_safe::DynFilesystem,
 };
-use trussed::store::{Fs, Store};
+use trussed::store::Store;
 
 use crate::Board;
 
@@ -66,9 +67,6 @@ pub trait StoragePointers: 'static {
     type ExternalStorage: Storage;
 
     unsafe fn ifs_storage() -> &'static mut MaybeUninit<Self::InternalStorage>;
-    unsafe fn ifs_ptr() -> *mut Fs<Self::InternalStorage>;
-
-    unsafe fn efs_ptr() -> *mut Fs<Self::ExternalStorage>;
 }
 
 #[cfg_attr(
@@ -87,20 +85,6 @@ macro_rules! impl_storage_pointers {
                     ::core::mem::MaybeUninit::uninit();
                 (&mut *&raw mut IFS_STORAGE)
             }
-
-            unsafe fn ifs_ptr() -> *mut ::trussed::store::Fs<Self::InternalStorage> {
-                static mut IFS: ::core::mem::MaybeUninit<::trussed::store::Fs<$I>> =
-                    ::core::mem::MaybeUninit::uninit();
-                let ifs_ptr: *mut ::core::mem::MaybeUninit<::trussed::store::Fs<$I>> = &raw mut IFS;
-                ifs_ptr as _
-            }
-
-            unsafe fn efs_ptr() -> *mut ::trussed::store::Fs<Self::ExternalStorage> {
-                static mut EFS: ::core::mem::MaybeUninit<::trussed::store::Fs<$E>> =
-                    ::core::mem::MaybeUninit::uninit();
-                let efs_ptr: *mut ::core::mem::MaybeUninit<::trussed::store::Fs<$E>> = &raw mut EFS;
-                efs_ptr as _
-            }
         }
     };
 }
@@ -111,20 +95,37 @@ macro_rules! impl_storage_pointers {
 )]
 pub(crate) use impl_storage_pointers;
 
+struct StorePointers {
+    ifs: MaybeUninit<&'static dyn DynFilesystem>,
+    efs: MaybeUninit<&'static dyn DynFilesystem>,
+    vfs: MaybeUninit<&'static dyn DynFilesystem>,
+}
+
+impl StorePointers {
+    const fn new() -> Self {
+        Self {
+            ifs: MaybeUninit::uninit(),
+            efs: MaybeUninit::uninit(),
+            vfs: MaybeUninit::uninit(),
+        }
+    }
+}
+
 pub struct RunnerStore<S> {
     _marker: PhantomData<*mut S>,
 }
 
 impl<S: StoragePointers> RunnerStore<S> {
     fn new(
-        ifs: &'static Filesystem<'static, S::InternalStorage>,
-        efs: &'static Filesystem<'static, S::ExternalStorage>,
-        vfs: &'static Filesystem<'static, VolatileStorage>,
+        ifs: &'static dyn DynFilesystem,
+        efs: &'static dyn DynFilesystem,
+        vfs: &'static dyn DynFilesystem,
     ) -> Self {
         unsafe {
-            S::ifs_ptr().write(Fs::new(ifs));
-            S::efs_ptr().write(Fs::new(efs));
-            Self::vfs_ptr().write(Fs::new(vfs));
+            let pointers = Self::pointers();
+            pointers.ifs.write(ifs);
+            pointers.efs.write(efs);
+            pointers.vfs.write(vfs);
         }
 
         Self {
@@ -132,10 +133,9 @@ impl<S: StoragePointers> RunnerStore<S> {
         }
     }
 
-    unsafe fn vfs_ptr() -> *mut Fs<VolatileStorage> {
-        static mut VFS: MaybeUninit<Fs<VolatileStorage>> = MaybeUninit::uninit();
-        let vfs_ptr: *mut MaybeUninit<Fs<VolatileStorage>> = &raw mut VFS;
-        vfs_ptr as _
+    unsafe fn pointers() -> &'static mut StorePointers {
+        static mut POINTERS: StorePointers = StorePointers::new();
+        (&raw mut POINTERS).as_mut().unwrap()
     }
 }
 
@@ -147,21 +147,17 @@ impl<S> Clone for RunnerStore<S> {
 
 impl<S> Copy for RunnerStore<S> {}
 
-unsafe impl<S: StoragePointers> Store for RunnerStore<S> {
-    type I = S::InternalStorage;
-    type E = S::ExternalStorage;
-    type V = VolatileStorage;
-
-    fn ifs(self) -> &'static Fs<Self::I> {
-        unsafe { &*S::ifs_ptr() }
+impl<S: StoragePointers> Store for RunnerStore<S> {
+    fn ifs(&self) -> &dyn DynFilesystem {
+        unsafe { Self::pointers().ifs.assume_init() }
     }
 
-    fn efs(self) -> &'static Fs<Self::E> {
-        unsafe { &*S::efs_ptr() }
+    fn efs(&self) -> &dyn DynFilesystem {
+        unsafe { Self::pointers().efs.assume_init() }
     }
 
-    fn vfs(self) -> &'static Fs<Self::V> {
-        unsafe { &*Self::vfs_ptr() }
+    fn vfs(&self) -> &dyn DynFilesystem {
+        unsafe { Self::pointers().vfs.assume_init() }
     }
 }
 

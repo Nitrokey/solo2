@@ -50,7 +50,7 @@ const_ram_storage!(
 const_ram_storage!(VolatileStorage, IFS_STORAGE_SIZE);
 
 // TODO: use 256 -- would cause a panic because formatting fails
-type InternalStorage = FilesystemOrRamStorage<InternalRamStorage>;
+pub type InternalStorage = FilesystemOrRamStorage<InternalRamStorage>;
 type ExternalStorage = FilesystemOrRamStorage<ExternalRamStorage>;
 
 pub struct FilesystemStorage<S: LfsStorage> {
@@ -207,6 +207,7 @@ impl FilesystemOrRam {
 
 impl StoreProvider for FilesystemOrRam {
     type Store = Store;
+    type Ifs = InternalStorage;
 
     unsafe fn ifs() -> &'static mut InternalStorage {
         #[allow(clippy::deref_addrof)]

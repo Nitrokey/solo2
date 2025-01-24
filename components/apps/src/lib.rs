@@ -319,7 +319,7 @@ pub trait Runner {
     type Syscall: Syscall + Clone + 'static;
 
     type Reboot: Reboot;
-    type Store: trussed::store::Store;
+    type Store: trussed::store::Store + Clone;
     #[cfg(feature = "provisioner-app")]
     type Filesystem: trussed::types::LfsStorage + 'static;
     #[cfg(feature = "se050")]
@@ -612,7 +612,7 @@ impl<R: Runner> Apps<R> {
 
         let trussed = client_builder.client::<AdminApp<R>>(runner, &());
         // TODO: use CLIENT_ID directly
-        let mut filestore = ClientFilestore::new(ADMIN_APP_CLIENT_ID.into(), data.store);
+        let mut filestore = ClientFilestore::new(ADMIN_APP_CLIENT_ID.into(), data.store.clone());
         let version = data.version.encode();
 
         let valid_migrators = migrations::MIGRATORS;
@@ -653,10 +653,10 @@ impl<R: Runner> Apps<R> {
                 trussed_auth_backend::FilesystemLayout::V0,
                 dispatch::AUTH_LOCATION,
                 path!("opcard"),
-                data.store,
+                data.store.clone(),
             )
             .unwrap_or_default();
-            let mut fs = ClientFilestore::new(path!("opcard").into(), data.store);
+            let mut fs = ClientFilestore::new(path!("opcard").into(), data.store.clone());
             let opcard_used = fs
                 .read_dir_first(path!(""), Location::External, &NotBefore::None)
                 .unwrap_or_default()
@@ -711,7 +711,7 @@ impl<R: Runner> Apps<R> {
             .unwrap_or_default();
 
         let migration_success = app
-            .migrate(migration_version, data.store, &mut filestore)
+            .migrate(migration_version, data.store.clone(), &mut filestore)
             .is_ok();
         if !migration_success {
             data.init_status.insert(InitStatus::MIGRATION_ERROR);
@@ -1262,7 +1262,7 @@ impl<R: Runner> App<R> for ProvisionerApp<R> {
         let uuid = runner.uuid();
         Self::new(
             trussed,
-            data.store,
+            data.store.clone(),
             data.stolen_filesystem,
             data.nfc_powered,
             uuid,

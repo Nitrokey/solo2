@@ -791,7 +791,7 @@ impl Stage6 {
         if self.basic.old_firmware_version <= 4194306 {
             debug!("data migration: updating FIDO2 attestation cert");
             let res = trussed::store::store(
-                self.store,
+                &self.store,
                 Location::Internal,
                 path!("fido/x5c/00"),
                 include_bytes!("../../data/fido-cert.der"),

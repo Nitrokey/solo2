@@ -5,7 +5,7 @@ version = 3
 [[package]]
 name = "admin-app"
 version = "0.1.0"
-source = "git+https://github.com/Nitrokey/admin-app.git?tag=v0.1.0-nitrokey.19#d5f1c6df405e4edeb6524f908c1c713139173e81"
+source = "git+https://github.com/Nitrokey/admin-app.git?branch=dyn-fs#c5d4dd7fe49447a7840aa59d0f12872687e9ee6c"
 dependencies = [
  "apdu-app",
  "cbor-smol",
@@ -3188,7 +3188,7 @@ dependencies = [
 [[package]]
 name = "trussed"
 version = "0.1.0"
-source = "git+https://github.com/trussed-dev/trussed.git?rev=ede9fc02dc69eba7b35536b2bf4fd189a82e50b7#ede9fc02dc69eba7b35536b2bf4fd189a82e50b7"
+source = "git+https://github.com/trussed-dev/trussed.git?branch=dyn-fs#5003249c3187dca841f83551ba625921611a5ace"
 dependencies = [
  "aes",
  "bitflags 2.6.0",
@@ -3385,7 +3385,7 @@ dependencies = [
 [[package]]
 name = "trussed-staging"
 version = "0.3.2"
-source = "git+https://github.com/trussed-dev/trussed-staging.git?rev=1e1ca03a3a62ea9b802f4070ea4bce002eeb4bec#1e1ca03a3a62ea9b802f4070ea4bce002eeb4bec"
+source = "git+https://github.com/trussed-dev/trussed-staging.git?branch=dyn-fs#675c2638448ffacdf9fbbfcaea4e26663946d19c"
 dependencies = [
  "aead",
  "chacha20poly1305",
