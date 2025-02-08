@@ -29,35 +29,6 @@ jlink:
 run: build
 	arm-none-eabi-gdb -q -x ./jlink.gdb "$(OUTPUT_ELF)"
 
-.PHONY: provision-develop
-provision-develop:
-	# Step 1: reset CMPA, erase firmware, build & flash provisioner
-	./scripts/boot-to-bootrom.sh
-	./scripts/usbwait.sh 1fc9:0021 20a0:42dd
-	$(MAKE) build FEATURES=develop,provisioner,$(FEATURES)
-	$(MAKE) bl-config-cmpa-empty
-	$(MAKE) bl-erase-firmware
-	$(MAKE) bl-flash
-	lpc55 reboot
-	./scripts/usbwait.sh 20a0:42b2
-	# wait 5 more seconds for the device to show up properly again
-	sleep 5
-	# Step 2: provision certs
-	$(MAKE) fw-provision-certs
-	./scripts/boot-to-bootrom.sh
-	./scripts/usbwait.sh 1fc9:0021
-	# Step 3: erase firmware, configure CMPA
-	$(MAKE) bl-erase-firmware
-	$(MAKE) bl-config-cmpa-develop
-	lpc55 reboot
-	./scripts/usbwait.sh 20a0:42dd
-	# Step 3: build & flash final firmware
-	$(MAKE) build FEATURES=develop,$(FEATURES)
-	$(MAKE) bl-erase-firmware
-	$(MAKE) bl-flash
-	lpc55 reboot
-	./scripts/usbwait.sh 20a0:42b2
-
 .PHONY: provision-release
 provision-release:
 	# TODO: add secure boot
@@ -68,24 +39,24 @@ provision-release:
 	$(MAKE) bl-erase-firmware
 	lpc55 reboot
 	./scripts/usbwait.sh 1fc9:0021
-	# Step 1: build & flash provisioner, provision keystore
-	$(MAKE) build FEATURES=provisioner,$(FEATURES)
+	# Step 1: build & flash provisioner, provision keystore, cmpa
 	$(MAKE) bl-provision-keystore
+	lpc55 reboot
+	./scripts/usbwait.sh 1fc9:0021
+	$(MAKE) bl-config-cmpa-develop
+	lpc55 reboot
+	./scripts/usbwait.sh 20a0:42dd
+	$(MAKE) build FEATURES=provisioner,$(FEATURES)
 	$(MAKE) bl-flash
 	lpc55 reboot
 	./scripts/usbwait.sh 20a0:42b2
 	# Step 2: provision certs
 	$(MAKE) fw-provision-certs
 	./scripts/boot-to-bootrom.sh
-	./scripts/usbwait.sh 1fc9:0021
-	# Step 3: erase firmware, configure CMPA
-	$(MAKE) bl-erase-firmware
-	$(MAKE) bl-config-cmpa-develop
-	lpc55 reboot
 	./scripts/usbwait.sh 20a0:42dd
-	# Step 3: build & flash final firmware
-	$(MAKE) build FEATURES=$(FEATURES)
+	# Step 3: erase firmware, build & flash final firmware
 	$(MAKE) bl-erase-firmware
+	$(MAKE) build FEATURES=$(FEATURES)
 	$(MAKE) bl-flash
 	lpc55 reboot
 	./scripts/usbwait.sh 20a0:42b2
