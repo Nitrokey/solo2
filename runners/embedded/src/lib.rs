@@ -24,7 +24,7 @@ pub const VERSION_STRING: &str = env!("NK3_FIRMWARE_VERSION");
 
 #[cfg(feature = "alloc")]
 #[global_allocator]
-static ALLOCATOR: alloc_cortex_m::CortexMHeap = alloc_cortex_m::CortexMHeap::empty();
+static ALLOCATOR: embedded_alloc::LlffHeap = embedded_alloc::LlffHeap::empty();
 
 #[cfg(feature = "alloc")]
 pub fn init_alloc() {
