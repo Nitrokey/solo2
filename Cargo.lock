@@ -439,8 +439,7 @@ dependencies = [
 [[package]]
 name = "cargo-license"
 version = "0.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f061c0dbae23c1fe7ace394590d59b7e9bd24c7c678cd1b5f179081592d5894b"
+source = "git+https://github.com/Nitrokey/cargo-license.git?rev=d38912dc4b7a10d3cf48f8cf86f49640ff3173ab#d38912dc4b7a10d3cf48f8cf86f49640ff3173ab"
 dependencies = [
  "ansi_term",
  "anyhow",
@@ -453,7 +452,7 @@ dependencies = [
  "serde",
  "serde_derive",
  "serde_json",
- "spdx 0.10.8",
+ "spdx",
  "toml 0.8.20",
 ]
 
@@ -684,7 +683,7 @@ dependencies = [
  "cargo-license",
  "cargo_metadata",
  "gumdrop",
- "spdx 0.9.0",
+ "spdx",
 ]
 
 [[package]]
@@ -3086,15 +3085,6 @@ name = "smallvec"
 version = "1.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3c5e1a9a646d36c3599cd173a41282daf47c44583ad367b8e6837255952e5c67"
-
-[[package]]
-name = "spdx"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a346909b3fd07776f9b96b98d4a58e3666f831c9a672c279b10f795a34c36425"
-dependencies = [
- "smallvec",
-]
 
 [[package]]
 name = "spdx"
