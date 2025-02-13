@@ -16,6 +16,8 @@ This guide explains how to compile and flash the firmware on a LPC55 Nitrokey 3 
   * Git
   * LLVM, Clang, GCC
     * On Debian-based distributions, you need to install these packages: `llvm clang libclang-dev gcc-arm-none-eabi libc6-dev-i386`
+  * PC/SC Smart Card Daemon [`pcsclite`](https://pcsclite.apdu.fr/) (needed for `solo2`)
+    * On Debian-based distributions, you neeed to install this package: `pcscd`
   * [`nitropy`](https://github.com/nitrokey/pynitrokey)
   * [`solo2`](https://github.com/solokeys/solo2-cli) with the `dev-pki` feature
   * [`lpc55`](https://github.com/lpc55/lpc55-host)
