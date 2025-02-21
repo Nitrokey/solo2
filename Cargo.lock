@@ -168,7 +168,7 @@ dependencies = [
 
 [[package]]
 name = "apps"
-version = "1.8.0"
+version = "1.8.1"
 dependencies = [
  "admin-app",
  "apdu-dispatch",
@@ -373,7 +373,7 @@ dependencies = [
 
 [[package]]
 name = "boards"
-version = "1.8.0"
+version = "1.8.1"
 dependencies = [
  "apdu-dispatch",
  "apps",
@@ -1090,7 +1090,7 @@ dependencies = [
 
 [[package]]
 name = "embedded-runner-lib"
-version = "1.8.0"
+version = "1.8.1"
 dependencies = [
  "alloc-cortex-m",
  "apdu-dispatch",
@@ -2238,8 +2238,8 @@ checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 
 [[package]]
 name = "piv-authenticator"
-version = "0.3.8"
-source = "git+https://github.com/Nitrokey/piv-authenticator.git?rev=65552820b4f931c21e1c7675b1bd6072cb872531#65552820b4f931c21e1c7675b1bd6072cb872531"
+version = "0.3.9"
+source = "git+https://github.com/Nitrokey/piv-authenticator.git?rev=2fec80ff825408a3d479668ff5557fdd32ead342#2fec80ff825408a3d479668ff5557fdd32ead342"
 dependencies = [
  "apdu-app",
  "cbor-smol",
@@ -3594,7 +3594,7 @@ dependencies = [
 
 [[package]]
 name = "usbip-runner"
-version = "1.8.0"
+version = "1.8.1"
 dependencies = [
  "apps",
  "cfg-if",
@@ -3620,7 +3620,7 @@ checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
 
 [[package]]
 name = "utils"
-version = "1.8.0"
+version = "1.8.1"
 dependencies = [
  "chrono",
  "delog",

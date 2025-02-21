@@ -10,7 +10,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "1.8.0"
+version = "1.8.1"
 
 [patch.crates-io]
 # components
@@ -26,7 +26,7 @@ lpc55-hal = { git = "https://github.com/lpc55/lpc55-hal.git", rev ="1a25fc366013
 admin-app = { git = "https://github.com/Nitrokey/admin-app.git", tag = "v0.1.0-nitrokey.19" }
 fido-authenticator = { git = "https://github.com/Nitrokey/fido-authenticator.git",tag = "v0.1.1-nitrokey.25" }
 opcard = { git = "https://github.com/Nitrokey/opcard-rs", rev = "39ec4c37f808c0cfeb84e0a8493bbee06f02c8e2" }
-piv-authenticator = { git = "https://github.com/Nitrokey/piv-authenticator.git", rev = "65552820b4f931c21e1c7675b1bd6072cb872531" }
+piv-authenticator = { git = "https://github.com/Nitrokey/piv-authenticator.git", rev = "2fec80ff825408a3d479668ff5557fdd32ead342" }
 secrets-app = { git = "https://github.com/Nitrokey/trussed-secrets-app", rev = "700863bdfa90a3616cbb695d6638c7aea7730c03" }
 webcrypt = { git = "https://github.com/nitrokey/nitrokey-websmartcard-rust", tag = "v0.8.0-rc11" }
 
