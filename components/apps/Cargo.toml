@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 delog = "0.1"
-apdu-dispatch = "0.3"
+apdu-dispatch = "0.3.1"
 bitflags = "2"
 ctaphid-dispatch = "0.2"
 embedded-hal = "0.2.7"

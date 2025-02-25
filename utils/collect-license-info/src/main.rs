@@ -41,6 +41,7 @@ impl Args {
                 avoid_dev_deps: false,
                 avoid_build_deps: false,
                 direct_deps_only: false,
+                avoid_proc_macros: false,
                 root_only: false,
             },
         )
