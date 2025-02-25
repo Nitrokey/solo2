@@ -87,7 +87,7 @@ $ make -C utils/lpc55-builder reset
 
 Build the firmware, configure the device and flash the firmware by running:
 ```
-$ make -C utils/lpc55-builder provision-develop
+$ make -C utils/lpc55-builder provision-release
 ```
 
 Now check that everything worked by running `nitropy nk3 test --exclude provisioner`.  The `uuid` and `version` checks should be successful.  The `fido2` test will fail with a message about an unexpected certificate hash.  This is expected because you don’t have access to the real FIDO2 batch keys and certificates.  If it fails with a different error message, something went wrong.
