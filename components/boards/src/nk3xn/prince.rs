@@ -16,6 +16,7 @@ use lpc55_hal::{
     traits::flash::WriteErase,
     typestates::init_state::Enabled,
 };
+use lpc55_pac::PRINCE;
 
 use super::MEMORY_REGIONS;
 
@@ -64,7 +65,7 @@ pub const BLOCK_COUNT: usize = {
 
 const PRINCE_REGION2_START: usize = 0x80_000;
 const PRINCE_SUBREGION_SIZE: usize = 8 * 1024;
-const PRINCE_REGION2_ENABLE: u32 = {
+const PRINCE_REGION2_MASK: u32 = {
     // FS must be placed in PRINCE Region 2
     assert!(FS_START >= PRINCE_REGION2_START);
     let offset = FS_START - PRINCE_REGION2_START;
@@ -80,33 +81,60 @@ const PRINCE_REGION2_ENABLE: u32 = {
     // --> disable subregion_count subregions, enable the remaining ones
     0xffffffff << subregion_count
 };
-const PRINCE_REGION2_DISABLE: u32 = 0;
 
-pub fn enable(prince: &mut Prince<Enabled>) {
-    prince.set_region_enable(Region::Region2, PRINCE_REGION2_ENABLE);
+pub struct PrinceConfig {
+    sr_enable2: u32,
 }
 
-pub fn disable(prince: &mut Prince<Enabled>) {
-    prince.set_region_enable(Region::Region2, PRINCE_REGION2_DISABLE);
-}
+impl PrinceConfig {
+    pub fn new(prince: &PRINCE) -> Self {
+        Self {
+            sr_enable2: prince.sr_enable2.read().bits(),
+        }
+    }
 
-pub fn with_enabled<T>(prince: &mut Prince<Enabled>, mut f: impl FnMut() -> T) -> T {
-    enable(prince);
-    let result = f();
-    disable(prince);
-    result
+    fn sr_enable2(&self, filesystem: bool) -> u32 {
+        if filesystem {
+            // enable the default regions and the filesystem regions
+            self.sr_enable2 | PRINCE_REGION2_MASK
+        } else {
+            // enable the default regions without the filesystem regions
+            self.sr_enable2 & !PRINCE_REGION2_MASK
+        }
+    }
+
+    pub fn enable_filesystem(&self, prince: &mut Prince<Enabled>) {
+        prince.set_region_enable(Region::Region2, self.sr_enable2(true));
+    }
+
+    pub fn disable_filesystem(&self, prince: &mut Prince<Enabled>) {
+        prince.set_region_enable(Region::Region2, self.sr_enable2(false));
+    }
+
+    pub fn with_filesystem<F: FnMut() -> T, T>(&self, prince: &mut Prince<Enabled>, mut f: F) -> T {
+        self.enable_filesystem(prince);
+        let result = f();
+        self.disable_filesystem(prince);
+        result
+    }
 }
 
 pub struct InternalFilesystem {
     flash_gordon: FlashGordon,
     prince: Prince<Enabled>,
+    prince_config: PrinceConfig,
 }
 
 impl InternalFilesystem {
-    pub fn new(flash_gordon: FlashGordon, prince: Prince<Enabled>) -> Self {
+    pub fn new(
+        flash_gordon: FlashGordon,
+        prince: Prince<Enabled>,
+        prince_config: PrinceConfig,
+    ) -> Self {
         Self {
             flash_gordon,
             prince,
+            prince_config,
         }
     }
 }
@@ -123,7 +151,7 @@ impl Storage for InternalFilesystem {
     type LOOKAHEAD_SIZE = littlefs_params::LOOKAHEAD_SIZE;
 
     fn read(&mut self, off: usize, buf: &mut [u8]) -> Result<usize> {
-        with_enabled(&mut self.prince, || {
+        self.prince_config.with_filesystem(&mut self.prince, || {
             let flash: *const u8 = (FS_START + off) as *const u8;
             #[allow(clippy::needless_range_loop)]
             for i in 0..buf.len() {
@@ -135,7 +163,8 @@ impl Storage for InternalFilesystem {
 
     fn write(&mut self, off: usize, data: &[u8]) -> Result<usize> {
         let ret = self.prince.write_encrypted(|prince| {
-            with_enabled(prince, || self.flash_gordon.write(FS_START + off, data))
+            self.prince_config
+                .with_filesystem(prince, || self.flash_gordon.write(FS_START + off, data))
         });
         ret.map(|_| data.len()).map_err(|_| Error::IO)
     }
@@ -150,5 +179,50 @@ impl Storage for InternalFilesystem {
                 .map_err(|_| Error::IO)?;
         }
         Ok(BLOCK_SIZE * pages)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_prince_sr_enable2() {
+        // currently, the first 9 regions are used for the firmware, so the first 9 bits should
+        // stay the same.  the rest should be 0 if the filesystem is disabled or 1 if it is
+        // enabled.
+
+        let none = 0;
+        let all = u32::MAX;
+        let firmware = 0b1_11111111;
+        let filesystem = 0b11111111_11111111_11111110_00000000;
+
+        assert_eq!(PRINCE_REGION2_MASK, filesystem);
+        assert_eq!(firmware ^ filesystem, all);
+
+        let config = PrinceConfig { sr_enable2: none };
+        assert_eq!(config.sr_enable2(false), none);
+        assert_eq!(config.sr_enable2(true), filesystem);
+
+        let config = PrinceConfig { sr_enable2: all };
+        assert_eq!(config.sr_enable2(false), firmware);
+        assert_eq!(config.sr_enable2(true), all);
+
+        let config = PrinceConfig {
+            sr_enable2: firmware,
+        };
+        assert_eq!(config.sr_enable2(false), firmware);
+        assert_eq!(config.sr_enable2(true), all);
+
+        let config = PrinceConfig { sr_enable2: 1 };
+        assert_eq!(config.sr_enable2(false), 1);
+        assert_eq!(
+            config.sr_enable2(true),
+            0b11111111_11111111_11111110_00000001
+        );
+
+        let config = PrinceConfig { sr_enable2: 0x3fff };
+        assert_eq!(config.sr_enable2(false), firmware);
+        assert_eq!(config.sr_enable2(true), all);
     }
 }

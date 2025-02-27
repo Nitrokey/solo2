@@ -1,6 +1,9 @@
 pub mod init;
 
-use boards::{init::Resources, nk3xn::NK3xN};
+use boards::{
+    init::Resources,
+    nk3xn::{prince::PrinceConfig, NK3xN},
+};
 
 use crate::{VERSION, VERSION_STRING};
 
@@ -13,6 +16,7 @@ pub fn init(
 
     boards::init::init_logger::<NK3xN>(VERSION_STRING);
 
+    let prince_config = PrinceConfig::new(&device_peripherals.PRINCE);
     let hal = lpc55_hal::Peripherals::from((device_peripherals, core_peripherals));
 
     let require_prince = cfg!(not(feature = "no-encrypted-storage"));
@@ -41,7 +45,7 @@ pub fn init(
             hal.pint,
             nfc_enabled,
         )
-        .next(hal.rng, hal.prince, hal.flash)
+        .next(hal.rng, hal.prince, hal.flash, prince_config)
         .next(&mut resources.store)
         .next(hal.rtc)
         .next(&mut resources.usb, hal.usbhs)
