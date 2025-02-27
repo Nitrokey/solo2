@@ -1,0 +1,37 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "USB/IP Emulator",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--features",
+                    "provisioner,backend-mldsa44,backend-mldsa65",
+                    "--bin=usbip-runner",
+                ],
+                "filter": {
+                    "kind": "bin",
+                }
+            },
+            "preLaunchTask": "DelayedUSBIPAttach",
+            "program": "${cargo:program}",
+            "args": [
+                // "--ifs",
+                // "${userHome}/nitrokey-usbip-ifs",
+                // "--user-presence",
+                // "interactive"
+            ],
+            "env": {
+                "RUST_BACKTRACE": "1",
+                //"RUST_LOG": "debug",
+            },
+            "cwd": "${workspaceFolder}/runners/usbip",
+        },
+    ],
+}

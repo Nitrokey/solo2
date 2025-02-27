@@ -1,5 +1,8 @@
 #![no_std]
 
+#[cfg(feature = "trussed-usbip")]
+extern crate alloc;
+
 #[cfg(feature = "secrets-app")]
 const SECRETS_APP_CREDENTIALS_COUNT_LIMIT: u16 = 50;
 #[cfg(feature = "webcrypt")]
@@ -28,11 +31,11 @@ use serde::{Deserialize, Serialize};
 use trussed::{api::NotBefore, service::Filestore};
 use trussed::{
     backend::BackendId,
-    client::ClientBuilder,
     interrupt::InterruptFlag,
+    pipe::{ServiceEndpoint, TrussedChannel},
     platform::Syscall,
     store::filestore::ClientFilestore,
-    types::{Location, Mechanism, Path},
+    types::{CoreContext, Location, Mechanism, Path},
     ClientImplementation, Platform, Service,
 };
 
@@ -45,8 +48,7 @@ use admin_app::{ConfigValueMut, ResetSignalAllocation};
 use webcrypt::{PeekingBypass, Webcrypt};
 
 mod dispatch;
-use dispatch::Backend;
-pub use dispatch::Dispatch;
+pub use dispatch::{Backend, Dispatch, DispatchContext};
 
 #[cfg(any(feature = "backend-auth", feature = "se050"))]
 pub use dispatch::AUTH_LOCATION;
@@ -314,7 +316,7 @@ pub struct PivConfig {
 }
 
 pub trait Runner {
-    type Syscall: Syscall + 'static;
+    type Syscall: Syscall + Clone + 'static;
 
     type Reboot: Reboot;
     type Store: trussed::store::Store;
@@ -343,6 +345,7 @@ pub struct Data<R: Runner> {
 }
 
 type Client<R> = ClientImplementation<
+    'static,
     <R as Runner>::Syscall,
     Dispatch<<R as Runner>::Twi, <R as Runner>::Se050Timer>,
 >;
@@ -409,6 +412,62 @@ pub struct Apps<R: Runner> {
     webcrypt: Option<PeekingBypass<'static, FidoApp<R>, WebcryptApp<R>>>,
 }
 
+const CLIENT_COUNT: usize = const {
+    // ndef is not listed here because it does not need a client
+    let clients = [
+        cfg!(feature = "fido-authenticator"),
+        cfg!(feature = "opcard"),
+        cfg!(feature = "piv-authenticator"),
+        cfg!(feature = "provisioner-app"),
+        cfg!(feature = "secrets-app"),
+        cfg!(feature = "webcrypt"),
+    ];
+
+    let mut n = 0;
+    let mut i = 0;
+    while i < clients.len() {
+        if clients[i] {
+            n += 1;
+        }
+        i += 1;
+    }
+    // admin-app is always enabled
+    n + 1
+};
+
+pub type Endpoint = ServiceEndpoint<'static, Backend, DispatchContext>;
+pub type Endpoints = Vec<Endpoint, CLIENT_COUNT>;
+
+pub struct ClientBuilder<R: Runner> {
+    syscall: R::Syscall,
+    endpoints: Endpoints,
+}
+
+impl<R: Runner> ClientBuilder<R> {
+    pub fn new(syscall: R::Syscall) -> Self {
+        Self {
+            syscall,
+            endpoints: Default::default(),
+        }
+    }
+
+    fn client<A: App<R>>(&mut self, runner: &R, config: &A::Config) -> Client<R> {
+        let interrupt = A::interrupt();
+        let backends = A::backends(runner, config);
+        let (requester, responder) = A::channel().split().unwrap();
+        let context = CoreContext::with_interrupt(A::CLIENT_ID.into(), interrupt);
+        self.endpoints
+            .push(Endpoint::new(responder, context, backends))
+            .ok()
+            .unwrap();
+        Client::<R>::new(requester, self.syscall.clone(), interrupt)
+    }
+
+    pub fn into_endpoints(self) -> Endpoints {
+        self.endpoints
+    }
+}
+
 const fn contains(data: &[Mechanism], item: Mechanism) -> bool {
     let mut i = 0;
     while i < data.len() {
@@ -441,32 +500,15 @@ const fn validate_mechanisms() {
         if contains(trussed_se050_backend::MECHANISMS, mechanism) {
             continue;
         }
-        // The usbip runner does not have the mechanisms normally provided by the se050 backend.
-        // Until there is a backend implementing them in software, we ignore them and return an
-        // error at runtime.
-        #[cfg(feature = "trussed-usbip")]
-        if contains(
-            &[
-                Mechanism::BrainpoolP256R1,
-                Mechanism::BrainpoolP256R1Prehashed,
-                Mechanism::BrainpoolP384R1,
-                Mechanism::BrainpoolP384R1Prehashed,
-                Mechanism::BrainpoolP512R1,
-                Mechanism::BrainpoolP512R1Prehashed,
-                Mechanism::P384,
-                Mechanism::P384Prehashed,
-                Mechanism::P521,
-                Mechanism::P521Prehashed,
-                Mechanism::Secp256k1,
-                Mechanism::Secp256k1Prehashed,
-            ],
-            mechanism,
-        ) {
+        #[cfg(feature = "backend-mldsa")]
+        if contains(trussed_pqc_backend::MECHANISMS, mechanism) {
             continue;
         }
 
         // This mechanism is not implemented by Trussed or any of the backends.
-        mechanism.panic();
+        // TODO: re-enable after fixing a bug that is including trussed-core features
+        // that aren't used elsewhere.
+        //mechanism.panic();
     }
 }
 
@@ -474,19 +516,13 @@ impl<R: Runner> Apps<R> {
     pub fn new<P: Platform>(
         runner: &R,
         trussed_service: &mut Service<P, Dispatch<R::Twi, R::Se050Timer>>,
-        mut make_client: impl FnMut(
-            &mut Service<P, Dispatch<R::Twi, R::Se050Timer>>,
-            &'static Path,
-            &'static [BackendId<Backend>],
-            Option<&'static InterruptFlag>,
-        ) -> Client<R>,
+        client_builder: &mut ClientBuilder<R>,
         data: Data<R>,
     ) -> Self {
         const {
             validate_mechanisms();
         }
 
-        let _ = (runner, &mut make_client);
         let Data {
             admin,
             #[cfg(feature = "fido-authenticator")]
@@ -496,11 +532,8 @@ impl<R: Runner> Apps<R> {
             ..
         } = data;
 
-        let (admin, init_status) =
-            Self::admin_app(runner, trussed_service, &mut make_client, admin);
+        let (admin, init_status) = Self::admin_app(runner, trussed_service, client_builder, admin);
 
-        let mut make_client =
-            |ids, backends, interrupt| make_client(trussed_service, ids, backends, interrupt);
         let migrated_successfully = !init_status.contains(InitStatus::MIGRATION_ERROR);
         #[cfg(feature = "opcard")]
         let config_has_error = init_status.contains(InitStatus::CONFIG_ERROR);
@@ -510,27 +543,27 @@ impl<R: Runner> Apps<R> {
         // error occured.
         #[cfg(feature = "opcard")]
         let opcard = (!config_has_error && migrated_successfully)
-            .then(|| App::new(runner, &mut make_client, (), &admin.config().opcard));
+            .then(|| App::new(runner, client_builder, (), &admin.config().opcard));
         #[cfg(all(feature = "fido-authenticator", not(feature = "webcrypt")))]
         let fido = migrated_successfully
-            .then(|| App::new(runner, &mut make_client, fido, &admin.config().fido));
+            .then(|| App::new(runner, client_builder, fido, &admin.config().fido));
 
         #[cfg(feature = "webcrypt")]
         let webcrypt_fido_bypass = migrated_successfully.then(|| {
             PeekingBypass::new(
-                App::new(runner, &mut make_client, fido, &admin.config().fido),
-                App::new(runner, &mut make_client, (), &()),
+                App::new(runner, client_builder, fido, &admin.config().fido),
+                App::new(runner, client_builder, (), &()),
             )
         });
 
         #[cfg(feature = "secrets-app")]
-        let oath = migrated_successfully.then(|| App::new(runner, &mut make_client, (), &()));
+        let oath = migrated_successfully.then(|| App::new(runner, client_builder, (), &()));
 
         #[cfg(feature = "piv-authenticator")]
-        let piv = migrated_successfully.then(|| App::new(runner, &mut make_client, (), &()));
+        let piv = migrated_successfully.then(|| App::new(runner, client_builder, (), &()));
 
         #[cfg(feature = "provisioner-app")]
-        let provisioner = App::new(runner, &mut make_client, provisioner, &());
+        let provisioner = App::new(runner, client_builder, provisioner, &());
 
         Self {
             #[cfg(all(feature = "fido-authenticator", not(feature = "webcrypt")))]
@@ -554,19 +587,13 @@ impl<R: Runner> Apps<R> {
     fn admin_app<P: Platform>(
         runner: &R,
         trussed_service: &mut Service<P, Dispatch<R::Twi, R::Se050Timer>>,
-        make_client: impl FnOnce(
-            &mut Service<P, Dispatch<R::Twi, R::Se050Timer>>,
-            &'static Path,
-            &'static [BackendId<Backend>],
-            Option<&'static InterruptFlag>,
-        ) -> Client<R>,
+        client_builder: &mut ClientBuilder<R>,
         mut data: AdminData<R>,
     ) -> (AdminApp<R>, InitStatus) {
-        let trussed = AdminApp::<R>::client(
-            runner,
-            |id, backends, interrupt| make_client(trussed_service, id, backends, interrupt),
-            &(),
-        );
+        #[cfg(not(feature = "se050"))]
+        let _ = trussed_service;
+
+        let trussed = client_builder.client::<AdminApp<R>>(runner, &());
         // TODO: use CLIENT_ID directly
         let mut filestore = ClientFilestore::new(ADMIN_APP_CLIENT_ID.into(), data.store);
         let version = data.version.encode();
@@ -605,8 +632,8 @@ impl<R: Runner> Apps<R> {
             && !app.config().opcard.use_se050_backend
         {
             use core::mem;
-            let opcard_trussed_auth_used = trussed_auth_backend::AuthBackend::is_client_active(
-                trussed_auth_backend::FilesystemLayout::V0,
+            let opcard_trussed_auth_used = trussed_auth::AuthBackend::is_client_active(
+                trussed_auth::FilesystemLayout::V0,
                 dispatch::AUTH_LOCATION,
                 path!("opcard"),
                 data.store,
@@ -674,29 +701,6 @@ impl<R: Runner> Apps<R> {
             *app.status_mut() = data.status();
         }
         (app, data.init_status)
-    }
-
-    pub fn with_service<P: Platform>(
-        runner: &R,
-        trussed_service: &mut Service<P, Dispatch<R::Twi, R::Se050Timer>>,
-        data: Data<R>,
-    ) -> Self
-    where
-        R::Syscall: Default,
-    {
-        Self::new(
-            runner,
-            trussed_service,
-            |trussed_service, id, backends, interrupt| {
-                ClientBuilder::new(id)
-                    .backends(backends)
-                    .interrupt(interrupt)
-                    .prepare(trussed_service)
-                    .unwrap()
-                    .build(R::Syscall::default())
-            },
-            data,
-        )
     }
 
     pub fn apdu_dispatch<F, T>(&mut self, f: F) -> T
@@ -788,21 +792,14 @@ where
 
     fn new(
         trussed_service: &mut Service<trussed::virt::Platform<S>, Dispatch<R::Twi, R::Se050Timer>>,
+        endpoints: &mut alloc::vec::Vec<Endpoint>,
         syscall: trussed_usbip::Syscall,
         (runner, data): (R, Data<R>),
     ) -> Self {
-        Self::new(
-            &runner,
-            trussed_service,
-            move |trussed_service, id, backends, _| {
-                ClientBuilder::new(id)
-                    .backends(backends)
-                    .prepare(trussed_service)
-                    .unwrap()
-                    .build(syscall.clone())
-            },
-            data,
-        )
+        let mut client_builder = ClientBuilder::new(syscall);
+        let apps = Self::new(&runner, trussed_service, &mut client_builder, data);
+        endpoints.extend(client_builder.into_endpoints());
+        apps
     }
 
     fn with_ctaphid_apps<T>(
@@ -831,36 +828,18 @@ trait App<R: Runner>: Sized {
 
     fn new(
         runner: &R,
-        make_client: impl FnOnce(
-            &'static Path,
-            &'static [BackendId<Backend>],
-            Option<&'static InterruptFlag>,
-        ) -> Client<R>,
+        client_builder: &mut ClientBuilder<R>,
         data: Self::Data,
         config: &Self::Config,
     ) -> Self {
-        let client = Self::client(runner, make_client, config);
+        let client = client_builder.client::<Self>(runner, config);
         Self::with_client(runner, client, data, config)
-    }
-
-    fn client(
-        runner: &R,
-        make_client: impl FnOnce(
-            &'static Path,
-            &'static [BackendId<Backend>],
-            Option<&'static InterruptFlag>,
-        ) -> Client<R>,
-        config: &Self::Config,
-    ) -> Client<R> {
-        make_client(
-            Self::CLIENT_ID,
-            Self::backends(runner, config),
-            Self::interrupt(),
-        )
     }
 
     fn with_client(runner: &R, trussed: Client<R>, data: Self::Data, config: &Self::Config)
         -> Self;
+
+    fn channel() -> &'static TrussedChannel;
 
     fn backends(runner: &R, config: &Self::Config) -> &'static [BackendId<Backend>] {
         let _ = (runner, config);
@@ -985,6 +964,11 @@ impl<R: Runner> App<R> for AdminApp<R> {
         unimplemented!();
     }
 
+    fn channel() -> &'static TrussedChannel {
+        static CHANNEL: TrussedChannel = TrussedChannel::new();
+        &CHANNEL
+    }
+
     fn interrupt() -> Option<&'static InterruptFlag> {
         static INTERRUPT: InterruptFlag = InterruptFlag::new();
         Some(&INTERRUPT)
@@ -1040,13 +1024,24 @@ impl<R: Runner> App<R> for FidoApp<R> {
             },
         )
     }
+
+    fn channel() -> &'static TrussedChannel {
+        static CHANNEL: TrussedChannel = TrussedChannel::new();
+        &CHANNEL
+    }
+
     fn interrupt() -> Option<&'static InterruptFlag> {
         static INTERRUPT: InterruptFlag = InterruptFlag::new();
         Some(&INTERRUPT)
     }
 
     fn backends(_runner: &R, _config: &Self::Config) -> &'static [BackendId<Backend>] {
-        &[BackendId::Custom(Backend::Staging), BackendId::Core]
+        &[
+            #[cfg(feature = "backend-mldsa")]
+            BackendId::Custom(Backend::SoftwareMldsa),
+            BackendId::Custom(Backend::Staging),
+            BackendId::Core,
+        ]
     }
 }
 
@@ -1068,6 +1063,12 @@ impl<R: Runner> App<R> for WebcryptApp<R> {
             ),
         )
     }
+
+    fn channel() -> &'static TrussedChannel {
+        static CHANNEL: TrussedChannel = TrussedChannel::new();
+        &CHANNEL
+    }
+
     fn backends(runner: &R, _: &()) -> &'static [BackendId<Backend>] {
         const BACKENDS_WEBCRYPT: &[BackendId<Backend>] = &[
             BackendId::Custom(Backend::SoftwareRsa),
@@ -1098,12 +1099,19 @@ impl<R: Runner> App<R> for SecretsApp<R> {
         );
         Self::new(trussed, options)
     }
+
+    fn channel() -> &'static TrussedChannel {
+        static CHANNEL: TrussedChannel = TrussedChannel::new();
+        &CHANNEL
+    }
+
     fn backends(runner: &R, _: &()) -> &'static [BackendId<Backend>] {
         const BACKENDS_OATH: &[BackendId<Backend>] =
             &[BackendId::Custom(Backend::Auth), BackendId::Core];
         let _ = runner;
         BACKENDS_OATH
     }
+
     fn interrupt() -> Option<&'static InterruptFlag> {
         static INTERRUPT: InterruptFlag = InterruptFlag::new();
         Some(&INTERRUPT)
@@ -1171,9 +1179,16 @@ impl<R: Runner> App<R> for OpcardApp<R> {
         }
         Self::new(trussed, options)
     }
+
+    fn channel() -> &'static TrussedChannel {
+        static CHANNEL: TrussedChannel = TrussedChannel::new();
+        &CHANNEL
+    }
+
     fn backends(_runner: &R, config: &OpcardConfig) -> &'static [BackendId<Backend>] {
         config.backends()
     }
+
     fn interrupt() -> Option<&'static InterruptFlag> {
         static INTERRUPT: InterruptFlag = InterruptFlag::new();
         Some(&INTERRUPT)
@@ -1193,6 +1208,12 @@ impl<R: Runner> App<R> for PivApp<R> {
             piv_authenticator::Options::default().uuid(Some(runner.uuid())),
         )
     }
+
+    fn channel() -> &'static TrussedChannel {
+        static CHANNEL: TrussedChannel = TrussedChannel::new();
+        &CHANNEL
+    }
+
     fn backends(runner: &R, _: &()) -> &'static [BackendId<Backend>] {
         const BACKENDS_PIV: &[BackendId<Backend>] = &[
             #[cfg(feature = "se050")]
@@ -1203,6 +1224,7 @@ impl<R: Runner> App<R> for PivApp<R> {
         let _ = runner;
         BACKENDS_PIV
     }
+
     fn interrupt() -> Option<&'static InterruptFlag> {
         static INTERRUPT: InterruptFlag = InterruptFlag::new();
         Some(&INTERRUPT)
@@ -1235,6 +1257,12 @@ impl<R: Runner> App<R> for ProvisionerApp<R> {
             data.rebooter,
         )
     }
+
+    fn channel() -> &'static TrussedChannel {
+        static CHANNEL: TrussedChannel = TrussedChannel::new();
+        &CHANNEL
+    }
+
     fn interrupt() -> Option<&'static InterruptFlag> {
         static INTERRUPT: InterruptFlag = InterruptFlag::new();
         Some(&INTERRUPT)

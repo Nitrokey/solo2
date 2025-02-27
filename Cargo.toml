@@ -18,13 +18,13 @@ memory-regions = { path = "components/memory-regions" }
 
 # unreleased libraries
 p256-cortex-m4  = { git = "https://github.com/ycrypto/p256-cortex-m4.git", rev = "cdb31e12594b4dc1f045b860a885fdc94d96aee2" }
-trussed = { git = "https://github.com/trussed-dev/trussed.git", rev = "6bba8fde36d05c0227769eb63345744e87d84b2b" }
-trussed-usbip = { git = "https://github.com/trussed-dev/pc-usbip-runner.git", rev = "4fe4e4e287dac1d92fcd4f97e8926497bfa9d7a9" }
+#trussed = { git = "https://github.com/trussed-dev/trussed.git", rev = "6bba8fde36d05c0227769eb63345744e87d84b2b" }
+#trussed-usbip = { git = "https://github.com/trussed-dev/pc-usbip-runner.git", rev = "4fe4e4e287dac1d92fcd4f97e8926497bfa9d7a9" }
 lpc55-hal = { git = "https://github.com/lpc55/lpc55-hal.git", rev ="1a25fc366013503b46af938646c88aed4e36d74c" }
 
 # applications
 admin-app = { git = "https://github.com/Nitrokey/admin-app.git", tag = "v0.1.0-nitrokey.19" }
-fido-authenticator = { git = "https://github.com/Nitrokey/fido-authenticator.git",tag = "v0.1.1-nitrokey.25" }
+#fido-authenticator = { git = "https://github.com/Nitrokey/fido-authenticator.git",tag = "v0.1.1-nitrokey.25" }
 opcard = { git = "https://github.com/Nitrokey/opcard-rs", rev = "39ec4c37f808c0cfeb84e0a8493bbee06f02c8e2" }
 piv-authenticator = { git = "https://github.com/Nitrokey/piv-authenticator.git", rev = "65552820b4f931c21e1c7675b1bd6072cb872531" }
 secrets-app = { git = "https://github.com/Nitrokey/trussed-secrets-app", rev = "700863bdfa90a3616cbb695d6638c7aea7730c03" }
@@ -32,9 +32,21 @@ webcrypt = { git = "https://github.com/nitrokey/nitrokey-websmartcard-rust", tag
 
 # backends
 trussed-auth-backend = { git = "https://github.com/trussed-dev/trussed-auth", tag = "v0.4.0" }
-trussed-rsa-alloc = { git = "https://github.com/trussed-dev/trussed-rsa-backend.git", rev = "743d9aaa3d8a17d7dbf492bd54dc18ab8fca3dc0" }
+#trussed-rsa-alloc = { git = "https://github.com/trussed-dev/trussed-rsa-backend.git", rev = "743d9aaa3d8a17d7dbf492bd54dc18ab8fca3dc0" }
 trussed-se050-backend = { git = "https://github.com/Nitrokey/trussed-se050-backend.git", rev = "131c973fbe74d677fb8c8df97c210f78608994f0" }
 trussed-staging = { git = "https://github.com/trussed-dev/trussed-staging.git", rev = "1e1ca03a3a62ea9b802f4070ea4bce002eeb4bec" }
+
+# TODO: revert these to Git versions
+trussed-pqc-backend = { path = "../trussed-pqc-backend" }
+trussed-core = { path = "../trussed/core" }
+trussed = { path = "../trussed" }
+fido-authenticator = { path = "../fido-authenticator" }
+ctap-types = { path = "../ctap-types" }
+cosey = { path = "../cosey" }
+trussed-rsa-alloc = { path = "../trussed-rsa-backend" }
+ctaphid-dispatch = { path = "../ctaphid-dispatch/dispatch" }
+usbd-ctaphid = { path = "../usbd-ctaphid" }
+trussed-usbip = { git = "https://github.com/trussed-dev/pc-usbip-runner.git"}
 
 [profile.release]
 codegen-units = 1

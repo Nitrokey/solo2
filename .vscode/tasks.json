@@ -1,0 +1,42 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            // This task waits for a few seconds before attaching
+            // the newly-created USB/IP adapter
+            "label": "DelayedUSBIPAttach",
+            "type": "shell",
+            "command": "sudo",
+            "args": [
+                "${workspaceFolder}/runners/usbip/delayed-attach.sh"
+            ],
+            "isBackground": true,
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": true
+            },
+            // All this is needed so VSCode just lets this task run in the background.
+            "problemMatcher": [
+                {
+                    "pattern": [
+                        {
+                            "regexp": ".",
+                            "file": 1,
+                            "location": 2,
+                            "message": 3
+                        }
+                    ],
+                    "background": {
+                        "activeOnStart": true,
+                        "beginsPattern": ".",
+                        "endsPattern": ".",
+                    }
+                }
+            ],
+        },
+    ],
+}

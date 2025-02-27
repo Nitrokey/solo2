@@ -15,7 +15,7 @@ log = { version = "0.4.14", default-features = false }
 pretty_env_logger = "0.5.0"
 rand_core = { version = "0.6.4", features = ["getrandom"] }
 signal-hook = { version = "0.3.17", default-features = false }
-trussed = { version = "0.1", default-features = false, features = ["clients-3"] }
+trussed = { version = "0.1", default-features = false, features = [] }
 trussed-usbip = { version = "0.0.1", default-features = false, features = ["ctaphid"] }
 utils = { path = "../../components/utils", features = ["log-all"] }
 
@@ -26,3 +26,8 @@ utils = { path = "../../components/utils", features = ["build"] }
 test = ["apps/nk3-test"]
 provisioner = ["apps/nk3-provisioner"]
 ccid = ["apps/trussed-usbip-ccid", "trussed-usbip/ccid"]
+
+# PQC
+backend-mldsa44 = ["apps/backend-mldsa44"]
+backend-mldsa65 = ["apps/backend-mldsa65"]
+backend-mldsa87 = ["apps/backend-mldsa87"]

@@ -26,6 +26,7 @@ trussed-auth-backend = { version = "0.1.0", optional = true }
 trussed-rsa-alloc = { version = "0.2.0", optional = true }
 trussed-se050-backend = { version = "0.3.6", optional = true }
 trussed-staging = { version = "0.3.2", features = ["wrap-key-to-file", "chunked", "hkdf", "manage", "fs-info"] }
+trussed-pqc-backend = { version = "0.1.0", optional = true }
 
 # Extensions
 trussed-auth = { version = "0.4", optional = true }
@@ -59,13 +60,13 @@ hex = "0.4"
 # - all other optional apps require a Trussed client (+n)
 
 # nk3
-nk3 = ["fido-authenticator", "ndef-app", "secrets-app", "opcard", "piv-authenticator", "factory-reset", "trussed/clients-5"]
-nk3-test = ["nk3", "trussed/clients-5"]
-nk3-provisioner = ["nk3", "provisioner-app", "trussed/clients-6"]
+nk3 = ["fido-authenticator", "ndef-app", "secrets-app", "opcard", "piv-authenticator", "factory-reset"]
+nk3-test = ["nk3"]
+nk3-provisioner = ["nk3", "provisioner-app"]
 
 # nkpk
-nkpk = ["fido-authenticator", "factory-reset", "trussed/clients-2"]
-nkpk-provisioner = ["nkpk", "provisioner-app", "trussed/clients-3"]
+nkpk = ["fido-authenticator", "factory-reset"]
+nkpk-provisioner = ["nkpk", "provisioner-app"]
 
 # apps
 secrets-app = ["dep:secrets-app", "backend-auth", "trussed/chacha8-poly1305", "trussed/hmac-sha1", "trussed/hmac-sha256", "trussed/sha256"]
@@ -79,6 +80,13 @@ se050 = ["dep:se05x", "trussed-se050-backend", "trussed-se050-manage", "admin-ap
 backend-auth = ["trussed-auth", "trussed-auth-backend"]
 backend-rsa = ["trussed-rsa-alloc"]
 backend-software-hpke = ["trussed-staging/hpke"]
+# If any of the PQC algorithms are selected for compilation, then the
+# PQC backend must be included and the corresponding algorithm features
+# there must be set.
+backend-mldsa = ["dep:trussed-pqc-backend"]
+backend-mldsa44 = ["backend-mldsa", "trussed-pqc-backend/mldsa44", "fido-authenticator/mldsa44"]
+backend-mldsa65 = ["backend-mldsa", "trussed-pqc-backend/mldsa65", "fido-authenticator/mldsa65"]
+backend-mldsa87 = ["backend-mldsa", "trussed-pqc-backend/mldsa87", "fido-authenticator/mldsa87"]
 
 log-all = ["admin-app/log-all", "fido-authenticator?/log-all", "secrets-app?/log-all", "webcrypt?/log-all", "opcard?/log-all", "provisioner-app?/log-all"]
 log-error = []
