@@ -5,7 +5,7 @@ version = 3
 [[package]]
 name = "admin-app"
 version = "0.1.0"
-source = "git+https://github.com/Nitrokey/admin-app.git?tag=v0.1.0-nitrokey.19#d5f1c6df405e4edeb6524f908c1c713139173e81"
+source = "git+https://github.com/Nitrokey/admin-app.git?branch=dyn-fs#c5d4dd7fe49447a7840aa59d0f12872687e9ee6c"
 dependencies = [
  "apdu-app",
  "cbor-smol",
@@ -309,16 +309,14 @@ checksum = "8c3c1a368f70d6cf7302d78f8f7093da241fb8e8807c05cc9e51a125895a6d5b"
 
 [[package]]
 name = "bindgen"
-version = "0.69.4"
+version = "0.70.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a00dc851838a2120612785d195287475a3ac45514741da670b735818822129a0"
+checksum = "f49d8fed880d473ea71efb9bf597651e77201bdd4893efe54c9e5d65ae04ce6f"
 dependencies = [
  "bitflags 2.6.0",
  "cexpr",
  "clang-sys",
  "itertools",
- "lazy_static",
- "lazycell",
  "proc-macro2",
  "quote",
  "regex",
@@ -1717,12 +1715,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "lazycell"
-version = "1.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "830d08ce1d1d941e6b30645f1a0eb5643013d835ce3779a5fc208261dbe10f55"
-
-[[package]]
 name = "lfs-backup"
 version = "0.1.0"
 dependencies = [
@@ -1768,9 +1760,9 @@ checksum = "9afa463f5405ee81cdb9cc2baf37e08ec7e4c8209442b5d72c04cfb2cd6e6286"
 
 [[package]]
 name = "littlefs2"
-version = "0.5.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6857dedc8aba748ea287177abe2bdfb3bb43464c3003f93cdc0a72e1e542b60f"
+checksum = "1d186e7f379f2b23fad33d368ad02a357ba84167d3634c8f86d88d72c92d73c4"
 dependencies = [
  "delog",
  "generic-array",
@@ -1792,9 +1784,9 @@ dependencies = [
 
 [[package]]
 name = "littlefs2-sys"
-version = "0.2.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5e9a93267fadc37e91758279342f2055b6c03b1187ec7a6b1419c3710172466e"
+checksum = "32f7d54a8325846d818335f6e0a3ce4d4ff1d6a5cea7be989a76913dcb73afdc"
 dependencies = [
  "bindgen",
  "cc",
@@ -1841,7 +1833,6 @@ dependencies = [
  "embedded-hal",
  "embedded-time",
  "generic-array",
- "littlefs2",
  "lpc55-pac",
  "nb 1.1.0",
  "rand_core",
@@ -3197,7 +3188,7 @@ dependencies = [
 [[package]]
 name = "trussed"
 version = "0.1.0"
-source = "git+https://github.com/trussed-dev/trussed.git?rev=805fe7657e79e06b3220324481cd6325b94877d7#805fe7657e79e06b3220324481cd6325b94877d7"
+source = "git+https://github.com/trussed-dev/trussed.git?branch=dyn-fs#5003249c3187dca841f83551ba625921611a5ace"
 dependencies = [
  "aes",
  "bitflags 2.6.0",
@@ -3209,7 +3200,6 @@ dependencies = [
  "cosey",
  "delog",
  "des",
- "embedded-hal",
  "flexiber",
  "generic-array",
  "heapless",
@@ -3395,7 +3385,7 @@ dependencies = [
 [[package]]
 name = "trussed-staging"
 version = "0.3.2"
-source = "git+https://github.com/trussed-dev/trussed-staging.git?rev=1e1ca03a3a62ea9b802f4070ea4bce002eeb4bec#1e1ca03a3a62ea9b802f4070ea4bce002eeb4bec"
+source = "git+https://github.com/trussed-dev/trussed-staging.git?branch=dyn-fs#675c2638448ffacdf9fbbfcaea4e26663946d19c"
 dependencies = [
  "aead",
  "chacha20poly1305",

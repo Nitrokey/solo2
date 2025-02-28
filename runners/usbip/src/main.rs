@@ -115,7 +115,7 @@ impl apps::Runner for Runner {
     type Store = store::Store;
 
     #[cfg(feature = "provisioner")]
-    type Filesystem = <store::Store as trussed::store::Store>::I;
+    type Filesystem = store::InternalStorage;
 
     type Twi = ();
     type Se050Timer = ();

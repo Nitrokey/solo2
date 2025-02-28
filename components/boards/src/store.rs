@@ -4,29 +4,27 @@ use apps::InitStatus;
 use littlefs2::{
     const_ram_storage,
     driver::Storage,
-    driver::Storage as LfsStorage,
     fs::{Allocation, Filesystem},
-    io::Result as LfsResult,
+    io::Result,
+    object_safe::DynFilesystem,
 };
-use trussed::store::{Fs, Store};
+use trussed::store::Store;
 
 use crate::Board;
 
 // 8KB of RAM
 const_ram_storage!(
     name = VolatileStorage,
-    trait = LfsStorage,
     erase_value = 0xff,
     read_size = 16,
     write_size = 256,
     cache_size_ty = littlefs2::consts::U256,
     // We use 256 instead of the default 512 to avoid loosing too much space to nearly empty blocks containing only folder metadata.
     block_size = 256,
-    block_count = 8192/256,
+    block_count = 8192 / 256,
     lookahead_size_ty = littlefs2::consts::U1,
     filename_max_plus_one_ty = littlefs2::consts::U256,
     path_max_plus_one_ty = littlefs2::consts::U256,
-    result = LfsResult,
 );
 
 pub struct StoreResources<B: Board> {
@@ -69,9 +67,6 @@ pub trait StoragePointers: 'static {
     type ExternalStorage: Storage;
 
     unsafe fn ifs_storage() -> &'static mut MaybeUninit<Self::InternalStorage>;
-    unsafe fn ifs_ptr() -> *mut Fs<Self::InternalStorage>;
-
-    unsafe fn efs_ptr() -> *mut Fs<Self::ExternalStorage>;
 }
 
 #[cfg_attr(
@@ -90,20 +85,6 @@ macro_rules! impl_storage_pointers {
                     ::core::mem::MaybeUninit::uninit();
                 (&mut *&raw mut IFS_STORAGE)
             }
-
-            unsafe fn ifs_ptr() -> *mut ::trussed::store::Fs<Self::InternalStorage> {
-                static mut IFS: ::core::mem::MaybeUninit<::trussed::store::Fs<$I>> =
-                    ::core::mem::MaybeUninit::uninit();
-                let ifs_ptr: *mut ::core::mem::MaybeUninit<::trussed::store::Fs<$I>> = &raw mut IFS;
-                ifs_ptr as _
-            }
-
-            unsafe fn efs_ptr() -> *mut ::trussed::store::Fs<Self::ExternalStorage> {
-                static mut EFS: ::core::mem::MaybeUninit<::trussed::store::Fs<$E>> =
-                    ::core::mem::MaybeUninit::uninit();
-                let efs_ptr: *mut ::core::mem::MaybeUninit<::trussed::store::Fs<$E>> = &raw mut EFS;
-                efs_ptr as _
-            }
         }
     };
 }
@@ -114,20 +95,37 @@ macro_rules! impl_storage_pointers {
 )]
 pub(crate) use impl_storage_pointers;
 
+struct StorePointers {
+    ifs: MaybeUninit<&'static dyn DynFilesystem>,
+    efs: MaybeUninit<&'static dyn DynFilesystem>,
+    vfs: MaybeUninit<&'static dyn DynFilesystem>,
+}
+
+impl StorePointers {
+    const fn new() -> Self {
+        Self {
+            ifs: MaybeUninit::uninit(),
+            efs: MaybeUninit::uninit(),
+            vfs: MaybeUninit::uninit(),
+        }
+    }
+}
+
 pub struct RunnerStore<S> {
     _marker: PhantomData<*mut S>,
 }
 
 impl<S: StoragePointers> RunnerStore<S> {
     fn new(
-        ifs: &'static Filesystem<'static, S::InternalStorage>,
-        efs: &'static Filesystem<'static, S::ExternalStorage>,
-        vfs: &'static Filesystem<'static, VolatileStorage>,
+        ifs: &'static dyn DynFilesystem,
+        efs: &'static dyn DynFilesystem,
+        vfs: &'static dyn DynFilesystem,
     ) -> Self {
         unsafe {
-            S::ifs_ptr().write(Fs::new(ifs));
-            S::efs_ptr().write(Fs::new(efs));
-            Self::vfs_ptr().write(Fs::new(vfs));
+            let pointers = Self::pointers();
+            pointers.ifs.write(ifs);
+            pointers.efs.write(efs);
+            pointers.vfs.write(vfs);
         }
 
         Self {
@@ -135,10 +133,9 @@ impl<S: StoragePointers> RunnerStore<S> {
         }
     }
 
-    unsafe fn vfs_ptr() -> *mut Fs<VolatileStorage> {
-        static mut VFS: MaybeUninit<Fs<VolatileStorage>> = MaybeUninit::uninit();
-        let vfs_ptr: *mut MaybeUninit<Fs<VolatileStorage>> = &raw mut VFS;
-        vfs_ptr as _
+    unsafe fn pointers() -> &'static mut StorePointers {
+        static mut POINTERS: StorePointers = StorePointers::new();
+        (&raw mut POINTERS).as_mut().unwrap()
     }
 }
 
@@ -150,21 +147,17 @@ impl<S> Clone for RunnerStore<S> {
 
 impl<S> Copy for RunnerStore<S> {}
 
-unsafe impl<S: StoragePointers> Store for RunnerStore<S> {
-    type I = S::InternalStorage;
-    type E = S::ExternalStorage;
-    type V = VolatileStorage;
-
-    fn ifs(self) -> &'static Fs<Self::I> {
-        unsafe { &*S::ifs_ptr() }
+impl<S: StoragePointers> Store for RunnerStore<S> {
+    fn ifs(&self) -> &dyn DynFilesystem {
+        unsafe { Self::pointers().ifs.assume_init() }
     }
 
-    fn efs(self) -> &'static Fs<Self::E> {
-        unsafe { &*S::efs_ptr() }
+    fn efs(&self) -> &dyn DynFilesystem {
+        unsafe { Self::pointers().efs.assume_init() }
     }
 
-    fn vfs(self) -> &'static Fs<Self::V> {
-        unsafe { &*Self::vfs_ptr() }
+    fn vfs(&self) -> &dyn DynFilesystem {
+        unsafe { Self::pointers().vfs.assume_init() }
     }
 }
 
@@ -216,7 +209,7 @@ fn init_ifs<B: Board>(
     ifs_alloc: &'static mut Allocation<B::InternalStorage>,
     efs_storage: &mut B::ExternalStorage,
     status: &mut InitStatus,
-) -> LfsResult<Filesystem<'static, B::InternalStorage>> {
+) -> Result<Filesystem<'static, B::InternalStorage>> {
     if !Filesystem::is_mountable(ifs_storage) {
         // handle provisioner
         if cfg!(feature = "provisioner") {
@@ -240,7 +233,7 @@ fn init_efs<B: Board>(
     efs_alloc: &'static mut Allocation<B::ExternalStorage>,
     simulated_efs: bool,
     status: &mut InitStatus,
-) -> LfsResult<Filesystem<'static, B::ExternalStorage>> {
+) -> Result<Filesystem<'static, B::ExternalStorage>> {
     Filesystem::mount_or_else(efs_alloc, efs_storage, |_err, storage| {
         error_now!("EFS Mount Error {:?}", _err);
         let fmt_ext = Filesystem::format(storage);
@@ -258,7 +251,7 @@ fn init_efs<B: Board>(
 fn init_vfs(
     vfs_storage: &'static mut VolatileStorage,
     vfs_alloc: &'static mut Allocation<VolatileStorage>,
-) -> LfsResult<Filesystem<'static, VolatileStorage>> {
+) -> Result<Filesystem<'static, VolatileStorage>> {
     if !Filesystem::is_mountable(vfs_storage) {
         Filesystem::format(vfs_storage).ok();
     }

@@ -12,18 +12,23 @@ resolver = "2"
 [workspace.package]
 version = "1.8.0"
 
+[workspace.dependencies]
+littlefs2 = "0.6"
+
 [patch.crates-io]
 # components
 memory-regions = { path = "components/memory-regions" }
 
 # unreleased libraries
 p256-cortex-m4  = { git = "https://github.com/ycrypto/p256-cortex-m4.git", rev = "cdb31e12594b4dc1f045b860a885fdc94d96aee2" }
-lpc55-hal = { git = "https://github.com/lpc55/lpc55-hal.git", rev ="1a25fc366013503b46af938646c88aed4e36d74c" }
-trussed = { git = "https://github.com/trussed-dev/trussed.git", rev = "805fe7657e79e06b3220324481cd6325b94877d7" }
+lpc55-hal = { git = "https://github.com/lpc55/lpc55-hal.git", rev = "1a25fc366013503b46af938646c88aed4e36d74c" }
+# trussed = { git = "https://github.com/trussed-dev/trussed.git", rev = "ede9fc02dc69eba7b35536b2bf4fd189a82e50b7" }
+trussed = { git = "https://github.com/trussed-dev/trussed.git", branch = "dyn-fs" }
 trussed-usbip = { git = "https://github.com/trussed-dev/pc-usbip-runner.git", rev = "a0e9b855809577f0067a93e08c716aa285b03700" }
 
 # applications
-admin-app = { git = "https://github.com/Nitrokey/admin-app.git", tag = "v0.1.0-nitrokey.19" }
+# admin-app = { git = "https://github.com/Nitrokey/admin-app.git", tag = "v0.1.0-nitrokey.19" }
+admin-app = { git = "https://github.com/Nitrokey/admin-app.git", branch = "dyn-fs" }
 fido-authenticator = { git = "https://github.com/Nitrokey/fido-authenticator.git",tag = "v0.1.1-nitrokey.25" }
 opcard = { git = "https://github.com/Nitrokey/opcard-rs", rev = "39ec4c37f808c0cfeb84e0a8493bbee06f02c8e2" }
 piv-authenticator = { git = "https://github.com/Nitrokey/piv-authenticator.git", rev = "65552820b4f931c21e1c7675b1bd6072cb872531" }
@@ -34,7 +39,8 @@ webcrypt = { git = "https://github.com/nitrokey/nitrokey-websmartcard-rust", tag
 trussed-auth-backend = { git = "https://github.com/trussed-dev/trussed-auth", tag = "v0.4.0" }
 trussed-rsa-alloc = { git = "https://github.com/trussed-dev/trussed-rsa-backend.git", rev = "743d9aaa3d8a17d7dbf492bd54dc18ab8fca3dc0" }
 trussed-se050-backend = { git = "https://github.com/Nitrokey/trussed-se050-backend.git", rev = "131c973fbe74d677fb8c8df97c210f78608994f0" }
-trussed-staging = { git = "https://github.com/trussed-dev/trussed-staging.git", rev = "1e1ca03a3a62ea9b802f4070ea4bce002eeb4bec" }
+# trussed-staging = { git = "https://github.com/trussed-dev/trussed-staging.git", rev = "1e1ca03a3a62ea9b802f4070ea4bce002eeb4bec" }
+trussed-staging = { git = "https://github.com/trussed-dev/trussed-staging.git", branch = "dyn-fs" }
 
 [profile.release]
 codegen-units = 1

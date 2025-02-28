@@ -10,7 +10,7 @@ clap = { version = "4.0.0", features = ["cargo", "derive"] }
 clap-num = "1.0.0"
 delog = { version = "0.1.6", features = ["std-log"] }
 dialoguer = { version = "0.10.4", default-features = false }
-littlefs2 = { version = "0.5" }
+littlefs2.workspace = true
 log = { version = "0.4.14", default-features = false }
 pretty_env_logger = "0.5.0"
 rand_core = { version = "0.6.4", features = ["getrandom"] }

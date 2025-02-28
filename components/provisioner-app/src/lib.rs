@@ -194,7 +194,7 @@ where
                     // logging::dump_hex(&self.buffer_file_contents, self.buffer_file_contents.len());
 
                     let res = store::store(
-                        self.store,
+                        &self.store,
                         trussed::types::Location::Internal,
                         &buffer_path,
                         &self.buffer_file_contents,
@@ -241,7 +241,7 @@ where
                 let serialized_bytes = serialized_key.serialize();
 
                 store::store(
-                    self.store,
+                    &self.store,
                     trussed::types::Location::Internal,
                     FILENAME_P256_SECRET,
                     &serialized_bytes,
@@ -271,7 +271,7 @@ where
                 let serialized_bytes = serialized_key.serialize();
 
                 store::store(
-                    self.store,
+                    &self.store,
                     trussed::types::Location::Internal,
                     FILENAME_ED255_SECRET,
                     &serialized_bytes,
@@ -300,7 +300,7 @@ where
                 let serialized_bytes = serialized_key.serialize();
 
                 store::store(
-                    self.store,
+                    &self.store,
                     trussed::types::Location::Internal,
                     FILENAME_X255_SECRET,
                     &serialized_bytes,
@@ -320,7 +320,7 @@ where
                 } else {
                     info!("saving P256 CERT, {} bytes", data.len());
                     store::store(
-                        self.store,
+                        &self.store,
                         trussed::types::Location::Internal,
                         FILENAME_P256_CERT,
                         data,
@@ -336,7 +336,7 @@ where
                 } else {
                     info!("saving ED25519 CERT, {} bytes", data.len());
                     store::store(
-                        self.store,
+                        &self.store,
                         trussed::types::Location::Internal,
                         FILENAME_ED255_CERT,
                         data,
@@ -352,7 +352,7 @@ where
                 } else {
                     info!("saving X25519 CERT, {} bytes", data.len());
                     store::store(
-                        self.store,
+                        &self.store,
                         trussed::types::Location::Internal,
                         FILENAME_X255_CERT,
                         data,
@@ -375,7 +375,7 @@ where
                     let serialized_key = serialized_key.serialize();
 
                     store::store(
-                        self.store,
+                        &self.store,
                         trussed::types::Location::Internal,
                         FILENAME_T1_PUBLIC,
                         &serialized_key,

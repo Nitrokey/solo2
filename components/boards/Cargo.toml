@@ -15,7 +15,7 @@ embedded-hal = "0.2.3"
 embedded-time = "0.12"
 generic-array = "0.14"
 interchange = "0.3"
-littlefs2 = { version = "0.5", features = ["c-stubs"] }
+littlefs2 = { workspace = true, features = ["c-stubs"] }
 memory-regions = { path = "../memory-regions" }
 nb = "1"
 nfc-device = { path = "../nfc-device" }
@@ -30,7 +30,7 @@ usbd-ctaphid = "0.2"
 utils = { path = "../utils" }
 
 # soc-lpc55
-lpc55-hal = { version = "0.4", features = ["littlefs"], optional = true }
+lpc55-hal = { version = "0.4", optional = true }
 lpc55-pac = { version = "0.4", optional = true }
 systick-monotonic = { version = "1.0.0", optional = true }
 
