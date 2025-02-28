@@ -4,14 +4,12 @@
 // License: Apache-2.0 or MIT
 
 use littlefs2::{
+    consts::{U512, U8},
     driver::Storage,
     io::{Error, Result},
 };
 use lpc55_hal::{
-    drivers::flash::{
-        littlefs_params::{self, BLOCK_SIZE},
-        FlashGordon,
-    },
+    drivers::flash::{FlashGordon, PAGE_SIZE, READ_SIZE, WRITE_SIZE},
     peripherals::prince::{Prince, Region},
     traits::flash::WriteErase,
     typestates::init_state::Enabled,
@@ -48,6 +46,7 @@ use super::MEMORY_REGIONS;
 //    need to restrict the firmware area to 0x92_000, the start of the subregion that contains
 //    0x93_000.
 
+const BLOCK_SIZE: usize = PAGE_SIZE;
 const FLASH_SIZE: usize = 631 * 1024 + 512;
 pub const FS_START: usize = MEMORY_REGIONS.filesystem.start;
 pub const FS_END: usize = {
@@ -112,15 +111,15 @@ impl InternalFilesystem {
 }
 
 impl Storage for InternalFilesystem {
-    const READ_SIZE: usize = littlefs_params::READ_SIZE;
-    const WRITE_SIZE: usize = littlefs_params::WRITE_SIZE;
+    const READ_SIZE: usize = READ_SIZE;
+    const WRITE_SIZE: usize = WRITE_SIZE;
     const BLOCK_SIZE: usize = BLOCK_SIZE;
 
     const BLOCK_COUNT: usize = BLOCK_COUNT;
-    const BLOCK_CYCLES: isize = littlefs_params::BLOCK_CYCLES;
+    const BLOCK_CYCLES: isize = -1;
 
-    type CACHE_SIZE = littlefs_params::CACHE_SIZE;
-    type LOOKAHEAD_SIZE = littlefs_params::LOOKAHEAD_SIZE;
+    type CACHE_SIZE = U512;
+    type LOOKAHEAD_SIZE = U8;
 
     fn read(&mut self, off: usize, buf: &mut [u8]) -> Result<usize> {
         with_enabled(&mut self.prince, || {

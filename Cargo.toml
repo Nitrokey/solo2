@@ -12,14 +12,17 @@ resolver = "2"
 [workspace.package]
 version = "1.8.0"
 
+[workspace.dependencies]
+littlefs2 = "0.6"
+
 [patch.crates-io]
 # components
 memory-regions = { path = "components/memory-regions" }
 
 # unreleased libraries
 p256-cortex-m4  = { git = "https://github.com/ycrypto/p256-cortex-m4.git", rev = "cdb31e12594b4dc1f045b860a885fdc94d96aee2" }
-lpc55-hal = { git = "https://github.com/lpc55/lpc55-hal.git", rev ="1a25fc366013503b46af938646c88aed4e36d74c" }
-trussed = { git = "https://github.com/trussed-dev/trussed.git", rev = "805fe7657e79e06b3220324481cd6325b94877d7" }
+lpc55-hal = { git = "https://github.com/lpc55/lpc55-hal.git", rev = "1a25fc366013503b46af938646c88aed4e36d74c" }
+trussed = { git = "https://github.com/trussed-dev/trussed.git", rev = "ede9fc02dc69eba7b35536b2bf4fd189a82e50b7" }
 trussed-usbip = { git = "https://github.com/trussed-dev/pc-usbip-runner.git", rev = "a0e9b855809577f0067a93e08c716aa285b03700" }
 
 # applications

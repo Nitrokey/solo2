@@ -36,18 +36,16 @@ static mut VOLATILE_FS: Option<Filesystem<VolatileStorage>> = None;
 const_ram_storage!(InternalRamStorage, IFS_STORAGE_SIZE);
 // Modelled after the actual external RAM, see src/flash.rs in the embedded runner
 const_ram_storage!(
-    name=ExternalRamStorage,
-    trait=LfsStorage,
-    erase_value=0xff,
-    read_size=4,
-    write_size=256,
-    cache_size_ty=U512,
-    block_size=4096,
-    block_count=0x2_0000 / 4096,
-    lookahead_size_ty=U1,
-    filename_max_plus_one_ty=U256,
-    path_max_plus_one_ty=U256,
-    result=LfsResult,
+    name = ExternalRamStorage,
+    erase_value = 0xff,
+    read_size = 4,
+    write_size = 256,
+    cache_size_ty = U512,
+    block_size = 4096,
+    block_count = 0x2_0000 / 4096,
+    lookahead_size_ty = U1,
+    filename_max_plus_one_ty = U256,
+    path_max_plus_one_ty = U256,
 );
 const_ram_storage!(VolatileStorage, IFS_STORAGE_SIZE);
 
